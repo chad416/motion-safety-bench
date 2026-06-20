@@ -1,0 +1,22 @@
+﻿# TwinCAT 3 generated files
+*.tsproj.bak
+*.tmc
+*.tmproj
+*.compiled-library
+_CompileLog.txt
+_Boot/
+_Deployment/
+*.suo
+.vs/
+
+# Windows
+Thumbs.db
+Desktop.ini
+*.lnk
+
+# Editor
+*.swp
+*~
+
+# Simulation evidence (binary screenshots go here — keep folder, ignore binaries if large)
+# simulation/test_runs/*.png  # uncomment if screenshots are large
