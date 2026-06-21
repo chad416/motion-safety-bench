@@ -23,18 +23,23 @@ END_VAR
 
 METHOD Cyclic
 (* Method: Cyclic - Purpose: Aggregate all status into stHMIData, increment cycle count *)
-(* TODO: stHMIData.eCurrentMode := eCurrentMode *)
-(* TODO: stHMIData.stModePermits := stModePermits *)
-(* TODO: stHMIData.astAxisStatus := astAxisStatus *)
-(* TODO: stHMIData.stSafetyStatus := stSafetyStatus *)
-(* TODO: stHMIData.astActiveAlarms := astActiveAlarms *)
-(* TODO: stHMIData.nActiveAlarmCount := nActiveAlarmCount *)
-(* TODO: stHMIData.eHighestSeverity := eHighestSeverity *)
-(* TODO: stHMIData.astRecentEvents := astRecentEvents *)
-(* TODO: stHMIData.eHomingState := eHomingState *)
-(* TODO: stHMIData.bSimulationMode := bSimulationMode *)
-(* TODO: stHMIData.nCycleCount := stHMIData.nCycleCount + 1 *)
-(* TODO: set stHMIData.bHMIDataStale based on bDataStaleTimer *)
+
+stHMIData.eCurrentMode := eCurrentMode;
+stHMIData.stModePermits := stModePermits;
+stHMIData.astAxisStatus := astAxisStatus;
+stHMIData.stSafetyStatus := stSafetyStatus;
+stHMIData.astActiveAlarms := astActiveAlarms;
+stHMIData.nActiveAlarmCount := nActiveAlarmCount;
+stHMIData.eHighestSeverity := eHighestSeverity;
+stHMIData.astRecentEvents := astRecentEvents;
+stHMIData.eHomingState := eHomingState;
+stHMIData.bSimulationMode := bSimulationMode;
+
+stHMIData.nCycleCount := stHMIData.nCycleCount + 1;
+
+(* Simulated stale detection - always FALSE if cyclic is running *)
+stHMIData.bHMIDataStale := FALSE;
+
 END_METHOD
 
 END_FUNCTION_BLOCK

@@ -18,65 +18,68 @@ END_VAR
 fbConfig.Cyclic();
 
 (* Step 2 - Safety reads I/O before any motion decision *)
-fbSafety.Cyclic();
-(* TODO: wire config to safety *)
 fbSafety.bSimulationMode := fbConfig.bSimulationMode;
 fbSafety.stConfig := fbConfig.stMachineConfig.stSafetyConfig;
 fbSafety.abDriveReady[1] := fbAxis.astAxisStatus[1].bEnabled;
 fbSafety.abDriveReady[2] := fbAxis.astAxisStatus[2].bEnabled;
+fbSafety.Cyclic();
 
 (* Step 3 - Evaluate alarm conditions with current safety state *)
-fbAlarm.EvaluateConditions();
-(* TODO: wire safety to alarm *)
 fbAlarm.stSafetyStatus := fbSafety.stSafetyStatus;
 fbAlarm.bAnyAxisError := fbAxis.bAnyAxisError;
 fbAlarm.bHomingError := fbHoming.bHomingError;
+fbAlarm.bConfigInvalid := NOT fbConfig.bConfigValid;
+fbAlarm.EvaluateConditions();
 
 (* Step 4 - Determine mode based on safety + alarms *)
-fbMode.Cyclic();
-(* TODO: wire inputs to mode manager *)
 fbMode.stSafetyStatus := fbSafety.stSafetyStatus;
 fbMode.bAnyFaultActive := fbAlarm.bAnyFaultActive;
 fbMode.bAllAxesReady := fbAxis.bAllAxesReady;
 fbMode.bAllAxesHomed := fbHoming.bAllAxesHomed;
 fbMode.eRequestedMode := fbCommand.eRequestedMode;
 fbMode.bResetRequested := fbCommand.bResetRequested;
+fbMode.Cyclic();
 
 (* Step 5 - Parse and validate operator commands against current mode *)
-fbCommand.Cyclic();
-(* TODO: wire HMI command from test harness or HMI *)
 fbCommand.eCurrentMode := fbMode.eCurrentMode;
 fbCommand.stModePermits := fbMode.stModePermits;
 fbCommand.stSafetyStatus := fbSafety.stSafetyStatus;
 fbCommand.stHMICommand := fbTest.stHMICommand;  (* TestHarness or real HMI *)
+fbCommand.Cyclic();
 
 (* Step 6 - Execute homing if in HOMING mode *)
-fbHoming.Cyclic();
 fbHoming.eCurrentMode := fbMode.eCurrentMode;
 fbHoming.bStartHoming := fbCommand.bStartHoming;
 fbHoming.bAbortHoming := fbCommand.bAbortHoming;
-(* TODO: wire home switch signals from virtual or physical I/O *)
 fbHoming.astAxisConfig := fbConfig.stMachineConfig.astAxisConfig;
+IF fbConfig.bSimulationMode THEN
+    fbHoming.abHomeSwitchActive := GVL_VirtualIO.stVirtualIO.abHomeSwitch;
+ELSE
+    fbHoming.abHomeSwitchActive[1] := GVL_IO.bPhysHomeSwitch1;
+    fbHoming.abHomeSwitchActive[2] := GVL_IO.bPhysHomeSwitch2;
+END_IF
+(* Link axis references and call cyclic *)
+fbHoming(axis1Ref := fbAxis.axis1Ref, axis2Ref := fbAxis.axis2Ref);
+fbHoming.Cyclic();
 
 (* Step 7 - Execute motion commands, safety always wins *)
-fbAxis.Cyclic();
 fbAxis.stModePermits := fbMode.stModePermits;
 fbAxis.eCurrentMode := fbMode.eCurrentMode;
 fbAxis.stCommand := fbCommand.stMotionCommand;
 fbAxis.stSafetyStatus := fbSafety.stSafetyStatus;
 fbAxis.astAxisConfig := fbConfig.stMachineConfig.astAxisConfig;
+fbAxis.Cyclic();
 
 (* Step 8 - Finalize alarm states after all motion evaluated *)
-fbAlarm.UpdateOutputs();
 fbAlarm.bAckRequested := fbCommand.bAckRequested;
 fbAlarm.nAckAlarmID := fbCommand.nAckAlarmID;
 fbAlarm.bResetAllRequested := fbCommand.bResetAllRequested;
+fbAlarm.UpdateOutputs();
 
 (* Step 9 - Log all pending trace events *)
 fbTrace.Cyclic();
 
 (* Step 10 - Aggregate all status into HMI data structure *)
-fbHMI.Cyclic();
 fbHMI.eCurrentMode := fbMode.eCurrentMode;
 fbHMI.stModePermits := fbMode.stModePermits;
 fbHMI.astAxisStatus := fbAxis.astAxisStatus;
@@ -87,13 +90,14 @@ fbHMI.eHighestSeverity := fbAlarm.eHighestSeverity;
 fbHMI.astRecentEvents := fbTrace.astRecentEvents;
 fbHMI.eHomingState := fbHoming.eHomingState;
 fbHMI.bSimulationMode := fbConfig.bSimulationMode;
+fbHMI.Cyclic();
 
 (* Step 11 - Test harness runs last, only active in simulation *)
-fbTest.Cyclic();
 fbTest.eCurrentMode := fbMode.eCurrentMode;
 fbTest.astAxisStatus := fbAxis.astAxisStatus;
 fbTest.stSafetyStatus := fbSafety.stSafetyStatus;
 fbTest.nActiveAlarmCount := fbAlarm.nActiveAlarmCount;
 fbTest.bSimulationMode := fbConfig.bSimulationMode;
+fbTest.Cyclic();
 
 END_PROGRAM
