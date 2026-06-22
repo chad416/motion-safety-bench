@@ -1,52 +1,74 @@
 FUNCTION_BLOCK FB_TraceLogger
 VAR_INPUT
-    bExportTrigger  : BOOL;
-    bClearBuffer    : BOOL;
+    bLogEvent : BOOL;
+    stEvent : ST_TraceEvent;
+    bExportTrigger : BOOL;
+    bClearBuffer : BOOL;
 END_VAR
-
 VAR_OUTPUT
-    nEventCount         : UDINT;
-    nBufferUsedPercent  : UINT;
-    bBufferWrapped      : BOOL;
-    astRecentEvents     : ARRAY[1..20] OF ST_TraceEvent;
+    nEventCount : UDINT;
+    nBufferUsedPercent : UINT;
+    bBufferWrapped : BOOL;
+    bExportReady : BOOL;
+    astRecentEvents : ARRAY[1..20] OF ST_TraceEvent;
 END_VAR
-
 VAR
-    astRingBuffer   : ARRAY[1..1000] OF ST_TraceEvent;
-    astPendingQueue : ARRAY[1..50] OF ST_TraceEvent;
-    nWriteIdx       : UINT;
-    nPendingCount   : UINT;
-    rtrigExport     : R_TRIG;
-    rtrigClear      : R_TRIG;
+    astRingBuffer : ARRAY[1..1000] OF ST_TraceEvent;
+    nWriteIndex : UINT;
+    rtrigLog : R_TRIG;
+    rtrigExport : R_TRIG;
+    rtrigClear : R_TRIG;
+    nSourceIndex : DINT;
+    nRecentIndex : UINT;
 END_VAR
 
-METHOD Cyclic
-(* Method: Cyclic - Purpose: Flush pending queue to ring buffer, update recent events output *)
-(* TODO: flush astPendingQueue entries to astRingBuffer, increment nWriteIdx with wraparound *)
-(* TODO: copy last 20 entries to astRecentEvents *)
-(* TODO: nBufferUsedPercent := (nEventCount * 100) / cTRACE_BUFFER_SIZE, clamped to 100 *)
-(* TODO: if bClearBuffer rising edge: clear buffer, reset indices *)
-(* TODO: if bExportTrigger rising edge: mark buffer ready for HMI or file export *)
-END_METHOD
+rtrigLog(CLK := bLogEvent);
+rtrigExport(CLK := bExportTrigger);
+rtrigClear(CLK := bClearBuffer);
 
-METHOD LogEvent
-VAR_INPUT
-    eSource         : E_TraceSource;
-    nEventID        : UINT;
-    sDescription    : STRING(120);
-    fValue          : LREAL;
-END_VAR
-(* Method: LogEvent - Purpose: Add event to pending queue with timestamp *)
-(* TODO: IF nPendingCount < cTRACE_PENDING_MAX THEN add to astPendingQueue, nPendingCount++ END_IF *)
-(* TODO: stEntry.tTimestamp := NOW_DT() *)
-END_METHOD
+IF rtrigClear.Q THEN
+    nWriteIndex := 0;
+    nEventCount := 0;
+    nBufferUsedPercent := 0;
+    bBufferWrapped := FALSE;
+    bExportReady := FALSE;
+    FOR nRecentIndex := 1 TO cTRACE_DISPLAY_COUNT DO
+        astRecentEvents[nRecentIndex].nEventID := 0;
+        astRecentEvents[nRecentIndex].sDescription := '';
+        astRecentEvents[nRecentIndex].fValue := 0.0;
+    END_FOR
+END_IF
 
-METHOD GetRecentEvents : ARRAY[1..20] OF ST_TraceEvent
-VAR_INPUT
-    nCount : UINT;
-END_VAR
-(* Method: GetRecentEvents - Purpose: Return last N events from ring buffer *)
-(* TODO: copy last nCount entries starting from nWriteIdx working backward *)
-END_METHOD
+IF rtrigLog.Q THEN
+    nWriteIndex := nWriteIndex + 1;
+    IF nWriteIndex > cTRACE_BUFFER_SIZE THEN
+        nWriteIndex := 1;
+        bBufferWrapped := TRUE;
+    END_IF
+    astRingBuffer[nWriteIndex] := stEvent;
+    nEventCount := nEventCount + 1;
+END_IF
+
+FOR nRecentIndex := 1 TO cTRACE_DISPLAY_COUNT DO
+    nSourceIndex := UINT_TO_DINT(nWriteIndex) - UINT_TO_DINT(nRecentIndex) + 1;
+    WHILE nSourceIndex <= 0 DO
+        nSourceIndex := nSourceIndex + UINT_TO_DINT(cTRACE_BUFFER_SIZE);
+    END_WHILE
+    IF (nEventCount >= nRecentIndex) OR bBufferWrapped THEN
+        astRecentEvents[nRecentIndex] := astRingBuffer[DINT_TO_UINT(nSourceIndex)];
+    END_IF
+END_FOR
+
+IF nEventCount >= cTRACE_BUFFER_SIZE THEN
+    nBufferUsedPercent := 100;
+ELSE
+    nBufferUsedPercent := UDINT_TO_UINT(
+        (nEventCount * 100) / UINT_TO_UDINT(cTRACE_BUFFER_SIZE)
+    );
+END_IF
+
+IF rtrigExport.Q THEN
+    bExportReady := TRUE;
+END_IF
 
 END_FUNCTION_BLOCK

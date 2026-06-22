@@ -16,9 +16,9 @@
 |---------|------------|------------|-------|-------|-----------|------------|-----------------|-----|
 | DI_EStop | E-stop mushroom button chain | BOOL | Active LOW (de-assert = E-stop pressed) | NC | External | TRUE | EL1008 | 1 |
 | DI_SafetyRelay_OK | Safety relay (Pilz/Schmersal) output feedback | BOOL | Active HIGH = relay energised | NO | Relay | TRUE | EL1008 | 2 |
-| DI_LimitPos_Ax1 | Positive hardware limit switch — Axis 1 | BOOL | NC — de-asserts when triggered | NC | 24V | FALSE | EL1008 | 3 |
-| DI_LimitNeg_Ax1 | Negative hardware limit switch — Axis 1 | BOOL | NC — de-asserts when triggered | NC | 24V | FALSE | EL1008 | 4 |
-| DI_HomeSwitch_Ax1 | Home switch — Axis 1 (inductive, NPN or PNP) | BOOL | NO — asserts at home position | NO | 24V | FALSE | EL1008 | 5 |
+| DI_LimitPos_Ax1 | Positive hardware limit switch — Axis 1 | BOOL | NC — de-asserts when triggered | NC | 24V | TRUE | EL1008 | 3 |
+| DI_LimitNeg_Ax1 | Negative hardware limit switch — Axis 1 | BOOL | NC — de-asserts when triggered | NC | 24V | TRUE | EL1008 | 4 |
+| DI_HomeSwitch_Ax1 | Home switch — Axis 1 (24 V PNP preferred) | BOOL | NO — asserts at home position | NO | 24V | FALSE | EL1008 | 5 |
 | DI_SensorA | Inductive sensor A — position detection | BOOL | NO — asserts when target present | NO | 24V | FALSE | EL1008 | 6 |
 | DI_SensorB | Inductive sensor B — position detection | BOOL | NO — asserts when target present | NO | 24V | FALSE | EL1008 | 7 |
 | DI_DriveReady_Ax1 | Drive ready status from EL7211 servo terminal | BOOL | Active HIGH = drive ready | NO | Internal | TRUE | EL7211 status bit | — |
@@ -56,14 +56,13 @@ To simulate test scenarios during Simulation FAT, the engineer sets these variab
 
 | Test scenario | Variable to set | Value |
 |--------------|---------------|-------|
-| Simulate E-stop press | stVirtualIO.DI_EStop | FALSE |
-| Release E-stop | stVirtualIO.DI_EStop | TRUE |
-| Simulate safety relay trip | stVirtualIO.DI_SafetyRelay_OK | FALSE |
-| Trigger positive limit | stVirtualIO.DI_LimitPos_Ax1 | TRUE |
-| Trigger negative limit | stVirtualIO.DI_LimitNeg_Ax1 | TRUE |
-| Activate home switch | stVirtualIO.DI_HomeSwitch_Ax1 | TRUE |
-| Simulate drive ready | stVirtualIO.DI_DriveReady_Ax1 | TRUE / FALSE |
-| Trigger sensor A | stVirtualIO.DI_SensorA | TRUE |
+| Simulate E-stop press | `GVL_VirtualIO.stVirtualIO.bEStop` | FALSE |
+| Release E-stop | `GVL_VirtualIO.stVirtualIO.bEStop` | TRUE |
+| Simulate safety relay trip | `GVL_VirtualIO.stVirtualIO.bSafetyRelayFB` | FALSE |
+| Trigger positive limit | `GVL_VirtualIO.stVirtualIO.abLimitPos[1]` | FALSE (NC opens) |
+| Trigger negative limit | `GVL_VirtualIO.stVirtualIO.abLimitNeg[1]` | FALSE (NC opens) |
+| Activate home switch | `GVL_VirtualIO.stVirtualIO.abHomeSwitch[1]` | TRUE |
+| Trigger sensor A | `GVL_VirtualIO.stVirtualIO.bSensor1` | TRUE |
 
 ---
 
@@ -90,12 +89,12 @@ For trace logging efficiency, digital inputs are packed into a WORD:
 
 ---
 
-## 6. Phase 2 Wiring Notes (placeholder — complete after BOM finalized)
+## 6. Phase 2 Wiring Notes
 
 | Signal | Wire colour convention | Cable type | Notes |
 |--------|----------------------|-----------|-------|
 | DI_EStop | Yellow | 0.5 mm² | NC circuit — both contacts wired through relay |
-| Limit switches | White | 0.5 mm² | NPN sensors: 0V common, signal to EL1008 |
+| Limit switches | White | 0.5 mm² | NC contacts; healthy circuit reads TRUE |
 | Drive enable | Blue | 0.5 mm² | From EL2008 to EL7211 enable input |
 | Motor power | Black | 1.5 mm² | 48V from PSU to EL7211 power input |
 | Motor cable (OCT) | Per Beckhoff spec | OCT hybrid | AM81xx motors: single cable for power + feedback |
@@ -106,4 +105,5 @@ For trace logging efficiency, digital inputs are packed into a WORD:
 
 | Rev | Date | Author | Change |
 |-----|------|--------|--------|
-| 1.0 | 2026-06-20 | [Your name] | Initial issue — derived from FDS Section 9 |
+| 1.0 | 2026-06-20 | Project engineering | Initial issue — derived from FDS Section 9 |
+| 1.1 | 2026-06-21 | Project engineering | Corrected fail-safe limit defaults and as-built virtual tag names |

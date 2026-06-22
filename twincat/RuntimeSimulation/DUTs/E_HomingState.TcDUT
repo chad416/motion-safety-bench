@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="E_HomingState" Id="{24606E5C-CA07-7833-8EBB-AD10FAE27F0F}">
+    <Declaration><![CDATA[TYPE E_HomingState :
+(
+    HOM_IDLE            := 0,
+    HOM_SEEKING_SWITCH  := 1,
+    HOM_BACKING_OFF     := 2,
+    HOM_SEEKING_INDEX   := 3,
+    HOM_SETTING_POS     := 4,
+    HOM_COMPLETE        := 5,
+    HOM_ERROR           := 6
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

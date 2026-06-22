@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="ST_TraceEvent" Id="{F1E9F7BB-CC46-03E9-2D48-354BD132D749}">
+    <Declaration><![CDATA[TYPE ST_TraceEvent :
+STRUCT
+    tTimestamp : DT;
+    eSource : E_TraceSource;
+    nEventID : UINT;
+    sDescription : STRING(120);
+    fValue : LREAL;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

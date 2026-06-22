@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="ST_HMIData" Id="{66CD889A-4C0D-9A61-993D-0B234970CB5B}">
+    <Declaration><![CDATA[TYPE ST_HMIData :
+STRUCT
+    eCurrentMode : E_MachineMode;
+    stModePermits : ST_ModePermits;
+    astAxisStatus : ARRAY[1..2] OF ST_AxisStatus;
+    stSafetyStatus : ST_SafetyStatus;
+    astActiveAlarms : ARRAY[1..32] OF ST_Alarm;
+    nActiveAlarmCount : UINT;
+    eHighestSeverity : E_AlarmSeverity;
+    astRecentEvents : ARRAY[1..20] OF ST_TraceEvent;
+    eHomingState : E_HomingState;
+    bSimulationMode : BOOL;
+    bHMIDataStale : BOOL;
+    nCycleCount : UDINT;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

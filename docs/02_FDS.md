@@ -646,7 +646,7 @@ EtherCAT cycle: 1 ms. Distributed clocks enabled (DC mode) for synchronised serv
 
 | Rev | Date | Author | Change |
 |-----|------|--------|--------|
-| 1.0 | 2026-06-20 | [Your name] | Initial issue |
+| 1.0 | 2026-06-20 | Project team | Initial issue |
 
 ---
 *This FDS governs: ST architecture (docs/03_SDS.md + Prompt 4), simulation design (Prompt 6), HMI tag map (hmi/hmi_tag_map.md), and FAT protocol (docs/09_FAT_protocol.md).*

@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="ST_MachineConfig" Id="{BDCA1F7F-16B5-9666-F3E5-0B35C39758BC}">
+    <Declaration><![CDATA[TYPE ST_MachineConfig :
+STRUCT
+    bSimulationMode : BOOL := TRUE;
+    astAxisConfig : ARRAY[1..2] OF ST_AxisConfig;
+    stSafetyConfig : ST_SafetyConfig;
+    stTimingConfig : ST_TimingConfig;
+    stTraceConfig : ST_TraceConfig;
+    stAlarmConfig : ST_AlarmConfig;
+    nAxisCount : UINT := 2;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

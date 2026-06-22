@@ -1,0 +1,80 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <POU Name="FB_TraceLogger" Id="{AB351386-4D55-231D-D05E-ED4E51E43C91}">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_TraceLogger
+VAR_INPUT
+    bLogEvent : BOOL;
+    stEvent : ST_TraceEvent;
+    bExportTrigger : BOOL;
+    bClearBuffer : BOOL;
+END_VAR
+VAR_OUTPUT
+    nEventCount : UDINT;
+    nBufferUsedPercent : UINT;
+    bBufferWrapped : BOOL;
+    bExportReady : BOOL;
+    astRecentEvents : ARRAY[1..20] OF ST_TraceEvent;
+END_VAR
+VAR
+    astRingBuffer : ARRAY[1..1000] OF ST_TraceEvent;
+    nWriteIndex : UINT;
+    rtrigLog : R_TRIG;
+    rtrigExport : R_TRIG;
+    rtrigClear : R_TRIG;
+    nSourceIndex : DINT;
+    nRecentIndex : UINT;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[rtrigLog(CLK := bLogEvent);
+rtrigExport(CLK := bExportTrigger);
+rtrigClear(CLK := bClearBuffer);
+
+IF rtrigClear.Q THEN
+    nWriteIndex := 0;
+    nEventCount := 0;
+    nBufferUsedPercent := 0;
+    bBufferWrapped := FALSE;
+    bExportReady := FALSE;
+    FOR nRecentIndex := 1 TO cTRACE_DISPLAY_COUNT DO
+        astRecentEvents[nRecentIndex].nEventID := 0;
+        astRecentEvents[nRecentIndex].sDescription := '';
+        astRecentEvents[nRecentIndex].fValue := 0.0;
+    END_FOR
+END_IF
+
+IF rtrigLog.Q THEN
+    nWriteIndex := nWriteIndex + 1;
+    IF nWriteIndex > cTRACE_BUFFER_SIZE THEN
+        nWriteIndex := 1;
+        bBufferWrapped := TRUE;
+    END_IF
+    astRingBuffer[nWriteIndex] := stEvent;
+    nEventCount := nEventCount + 1;
+END_IF
+
+FOR nRecentIndex := 1 TO cTRACE_DISPLAY_COUNT DO
+    nSourceIndex := UINT_TO_DINT(nWriteIndex) - UINT_TO_DINT(nRecentIndex) + 1;
+    WHILE nSourceIndex <= 0 DO
+        nSourceIndex := nSourceIndex + UINT_TO_DINT(cTRACE_BUFFER_SIZE);
+    END_WHILE
+    IF (nEventCount >= nRecentIndex) OR bBufferWrapped THEN
+        astRecentEvents[nRecentIndex] := astRingBuffer[DINT_TO_UINT(nSourceIndex)];
+    END_IF
+END_FOR
+
+IF nEventCount >= cTRACE_BUFFER_SIZE THEN
+    nBufferUsedPercent := 100;
+ELSE
+    nBufferUsedPercent := UDINT_TO_UINT(
+        (nEventCount * 100) / UINT_TO_UDINT(cTRACE_BUFFER_SIZE)
+    );
+END_IF
+
+IF rtrigExport.Q THEN
+    bExportReady := TRUE;
+END_IF
+]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>

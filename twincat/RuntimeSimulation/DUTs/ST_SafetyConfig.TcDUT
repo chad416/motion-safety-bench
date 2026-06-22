@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="ST_SafetyConfig" Id="{66E0347E-A7BA-5CE8-0E28-240EEA6C4601}">
+    <Declaration><![CDATA[TYPE ST_SafetyConfig :
+STRUCT
+    tEStopDebounceTime : TIME := T#100MS;
+    tRelayDiscrepancyWindow : TIME := T#500MS;
+    tLimitDebounceTime : TIME := T#50MS;
+    tStuckSensorTimeout : TIME := T#5S;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

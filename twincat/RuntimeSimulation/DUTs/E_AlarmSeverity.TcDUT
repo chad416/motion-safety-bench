@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="E_AlarmSeverity" Id="{3C2D3C4A-8331-342B-A667-972314412DFC}">
+    <Declaration><![CDATA[TYPE E_AlarmSeverity :
+(
+    SEV_INFO        := 0,
+    SEV_WARNING     := 1,
+    SEV_FAULT       := 2,
+    SEV_CRITICAL    := 3
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="ST_VirtualIO" Id="{8EFB6FDF-3C56-8FAE-84FF-1FBF2ABFEBDC}">
+    <Declaration><![CDATA[TYPE ST_VirtualIO :
+STRUCT
+    bEStop : BOOL := TRUE;
+    bSafetyRelayFB : BOOL := TRUE;
+    abHomeSwitch : ARRAY[1..2] OF BOOL;
+    abLimitPos : ARRAY[1..2] OF BOOL := [TRUE, TRUE];
+    abLimitNeg : ARRAY[1..2] OF BOOL := [TRUE, TRUE];
+    bSensor1 : BOOL;
+    bSensor2 : BOOL;
+    bReadyLamp : BOOL;
+    bFaultLamp : BOOL;
+    bMotionLamp : BOOL;
+    bHomedLamp : BOOL;
+    bSafetyRelayCmd : BOOL;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

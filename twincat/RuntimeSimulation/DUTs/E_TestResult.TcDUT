@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="E_TestResult" Id="{B118B848-D9F5-9374-9A25-B919D09E9D18}">
+    <Declaration><![CDATA[TYPE E_TestResult :
+(
+    TRES_NOT_RUN    := 0,
+    TRES_RUNNING    := 1,
+    TRES_PASS       := 2,
+    TRES_FAIL       := 3,
+    TRES_TIMEOUT    := 4
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

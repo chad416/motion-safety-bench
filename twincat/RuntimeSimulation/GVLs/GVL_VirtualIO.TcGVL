@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <GVL Name="GVL_VirtualIO" Id="{806793BF-235B-3FE2-7581-BBD9E112F769}">
+    <Declaration><![CDATA[VAR_GLOBAL
+    (* Written by TestHarness or simulation environment. bSimulationMode must be TRUE. *)
+    stVirtualIO : ST_VirtualIO;
+END_VAR
+]]></Declaration>
+  </GVL>
+</TcPlcObject>

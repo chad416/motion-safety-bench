@@ -17,6 +17,28 @@ Desktop.ini
 # Editor
 *.swp
 *~
+node_modules/
+*.inspect.ndjson
+
+# Machine-specific TwinCAT/runtime diagnostics (not portable source)
+simulation/routes/
+simulation/runtime_backups/
+simulation/um_runtime_backup/
+simulation/*_status.txt
+simulation/*_launch.txt
+simulation/*_switch.txt
+simulation/twincat_admin_diagnostics.txt
+simulation/twincat_dte_build.txt
+simulation/twincat_cli_build.txt
+simulation/twincat_runtime_deploy.txt
+simulation/twincat_service_start.txt
+simulation/twincat_solution_creation.txt
+twincat/**/_Boot/
+twincat/**/_CompileInfo/
+twincat/**/_Libraries/
+*.tclrs
+*.noprjfile
+*.project.~u
 
 # Simulation evidence (binary screenshots go here — keep folder, ignore binaries if large)
 # simulation/test_runs/*.png  # uncomment if screenshots are large

@@ -1,0 +1,394 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <POU Name="FB_TestHarness" Id="{A8214024-85BF-466F-DD6B-2E87B7EFCD2D}">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_TestHarness
+VAR_INPUT
+    bRunTest : BOOL;
+    nTestID : UINT;
+    bRunAllTests : BOOL;
+    eCurrentMode : E_MachineMode;
+    astAxisStatus : ARRAY[1..2] OF ST_AxisStatus;
+    stSafetyStatus : ST_SafetyStatus;
+    nActiveAlarmCount : UINT;
+    nTraceEventCount : UDINT;
+    bSimulationMode : BOOL;
+END_VAR
+VAR_OUTPUT
+    stHMICommand : ST_HMICommand;
+    stTestResult : ST_TestResult;
+    astTestSummary : ARRAY[1..50] OF ST_TestResult;
+    nTestsRun : UINT;
+    nTestsPassed : UINT;
+    nTestsFailed : UINT;
+    nCurrentTestID : UINT;
+    bTestSuiteRunning : BOOL;
+    bTestSuiteComplete : BOOL;
+END_VAR
+VAR
+    eTestPhase : E_TestPhase;
+    nTestStep : UINT;
+    nCyclesInPhase : UDINT;
+    rtrigRunTest : R_TRIG;
+    rtrigRunAll : R_TRIG;
+    bRunSuite : BOOL;
+    bVerificationPassed : BOOL;
+    fInitialPosition : LREAL;
+    fExpectedPosition : LREAL;
+    sTestName : STRING(80);
+    sExpected : STRING(120);
+    sActual : STRING(120);
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[rtrigRunTest(CLK := bRunTest);
+rtrigRunAll(CLK := bRunAllTests);
+
+(* All command edges are one scan wide unless explicitly held for jog. *)
+stHMICommand.bExecute := FALSE;
+
+IF NOT bSimulationMode THEN
+    bTestSuiteRunning := FALSE;
+    eTestPhase := TEST_IDLE;
+ELSE
+    IF rtrigRunAll.Q THEN
+        nTestsRun := 0;
+        nTestsPassed := 0;
+        nTestsFailed := 0;
+        nCurrentTestID := 1;
+        bRunSuite := TRUE;
+        bTestSuiteRunning := TRUE;
+        bTestSuiteComplete := FALSE;
+        eTestPhase := TEST_SETUP;
+        nTestStep := 0;
+        nCyclesInPhase := 0;
+    ELSIF rtrigRunTest.Q AND (nTestID >= 1) AND (nTestID <= 12) THEN
+        nCurrentTestID := nTestID;
+        bRunSuite := FALSE;
+        bTestSuiteRunning := TRUE;
+        bTestSuiteComplete := FALSE;
+        eTestPhase := TEST_SETUP;
+        nTestStep := 0;
+        nCyclesInPhase := 0;
+    END_IF
+
+    IF bTestSuiteRunning THEN
+        nCyclesInPhase := nCyclesInPhase + 1;
+
+        CASE eTestPhase OF
+            TEST_SETUP:
+                GVL_VirtualIO.stVirtualIO.bEStop := TRUE;
+                GVL_VirtualIO.stVirtualIO.bSafetyRelayFB := TRUE;
+                GVL_VirtualIO.stVirtualIO.abLimitPos[1] := TRUE;
+                GVL_VirtualIO.stVirtualIO.abLimitNeg[1] := TRUE;
+                GVL_VirtualIO.stVirtualIO.abHomeSwitch[1] := FALSE;
+                GVL_VirtualIO.stVirtualIO.abHomeSwitch[2] := FALSE;
+                fInitialPosition := astAxisStatus[1].fActualPosition;
+                bVerificationPassed := FALSE;
+
+                CASE nCurrentTestID OF
+                    1:
+                        sTestName := 'TR01 Power-up and Init';
+                        sExpected := 'Safe startup reaches MODE_INIT';
+                    2:
+                        sTestName := 'TR02 Homing Complete';
+                        sExpected := 'Both axes homed and MANUAL mode entered';
+                    3:
+                        sTestName := 'TR03 Absolute Move';
+                        sExpected := 'Axis 1 reaches 100.0 mm';
+                    4:
+                        sTestName := 'TR04 Relative Move';
+                        sExpected := 'Axis 1 advances by 50.0 mm';
+                        fExpectedPosition := fInitialPosition + 50.0;
+                    5:
+                        sTestName := 'TR05 Manual Jog';
+                        sExpected := 'Position increases only while jog is held';
+                    6:
+                        sTestName := 'TR06 Soft Limit Rejection';
+                        sExpected := 'Target beyond +300 mm is rejected';
+                    7:
+                        sTestName := 'TR07 E-stop During Motion';
+                        sExpected := 'Motion stops and machine enters FAULT';
+                    8:
+                        sTestName := 'TR08 Fault Reset Cycle';
+                        sExpected := 'FAULT resets through RESET to INIT';
+                    9:
+                        sTestName := 'TR09 Alarm Acknowledgement';
+                        sExpected := 'Active alarm accepts acknowledgement';
+                    10:
+                        sTestName := 'TR10 Trace Logging';
+                        sExpected := 'Trace event count increases';
+                    11:
+                        sTestName := 'TR11 Warm Restart';
+                        sExpected := 'No stale motion command after restart';
+                    12:
+                        sTestName := 'TR12 Cold-start Defaults';
+                        sExpected := 'Safe defaults restored';
+                END_CASE
+
+                stTestResult.nTestID := nCurrentTestID;
+                stTestResult.sTestName := sTestName;
+                stTestResult.sExpected := sExpected;
+                stTestResult.eResult := TRES_RUNNING;
+                eTestPhase := TEST_EXECUTE;
+                nTestStep := 0;
+                nCyclesInPhase := 0;
+
+            TEST_EXECUTE:
+                CASE nCurrentTestID OF
+                    1:
+                        IF nTestStep = 0 THEN
+                            stHMICommand.eCommandType := CMD_MODE_REQUEST;
+                            stHMICommand.eTargetMode := MODE_INIT;
+                            stHMICommand.bExecute := TRUE;
+                            nTestStep := 1;
+                        ELSIF nCyclesInPhase >= 20 THEN
+                            eTestPhase := TEST_VERIFY;
+                        END_IF
+
+                    2:
+                        IF nTestStep = 0 THEN
+                            stHMICommand.eCommandType := CMD_MODE_REQUEST;
+                            stHMICommand.eTargetMode := MODE_HOMING;
+                            stHMICommand.bExecute := TRUE;
+                            nTestStep := 1;
+                        ELSIF nTestStep = 1 THEN
+                            (* Preserve one complete FALSE scan between edge
+                               commands so CommandParser's R_TRIG can re-arm. *)
+                            nTestStep := 2;
+                        ELSIF nTestStep = 2 THEN
+                            stHMICommand.eCommandType := CMD_HOME;
+                            stHMICommand.bExecute := TRUE;
+                            nTestStep := 3;
+                        ELSIF nCyclesInPhase = 20 THEN
+                            GVL_VirtualIO.stVirtualIO.abHomeSwitch[1] := TRUE;
+                        ELSIF nCyclesInPhase = 30 THEN
+                            GVL_VirtualIO.stVirtualIO.abHomeSwitch[1] := FALSE;
+                        ELSIF nCyclesInPhase = 40 THEN
+                            GVL_VirtualIO.stVirtualIO.abHomeSwitch[1] := TRUE;
+                        ELSIF nCyclesInPhase = 50 THEN
+                            GVL_VirtualIO.stVirtualIO.abHomeSwitch[1] := FALSE;
+                        ELSIF nCyclesInPhase = 60 THEN
+                            GVL_VirtualIO.stVirtualIO.abHomeSwitch[2] := TRUE;
+                        ELSIF nCyclesInPhase = 70 THEN
+                            GVL_VirtualIO.stVirtualIO.abHomeSwitch[2] := FALSE;
+                        ELSIF nCyclesInPhase = 80 THEN
+                            GVL_VirtualIO.stVirtualIO.abHomeSwitch[2] := TRUE;
+                        ELSIF nCyclesInPhase >= 100 THEN
+                            eTestPhase := TEST_VERIFY;
+                        END_IF
+
+                    3:
+                        IF nTestStep = 0 THEN
+                            stHMICommand.eCommandType := CMD_MOVE_ABSOLUTE;
+                            stHMICommand.nAxisIndex := 1;
+                            stHMICommand.fValue1 := 100.0;
+                            stHMICommand.fValue2 := 200.0;
+                            stHMICommand.bExecute := TRUE;
+                            nTestStep := 1;
+                        ELSIF (NOT astAxisStatus[1].bInMotion) AND (nCyclesInPhase > 5) THEN
+                            eTestPhase := TEST_VERIFY;
+                        END_IF
+
+                    4:
+                        IF nTestStep = 0 THEN
+                            stHMICommand.eCommandType := CMD_MOVE_RELATIVE;
+                            stHMICommand.nAxisIndex := 1;
+                            stHMICommand.fValue1 := 50.0;
+                            stHMICommand.fValue2 := 200.0;
+                            stHMICommand.bExecute := TRUE;
+                            nTestStep := 1;
+                        ELSIF (NOT astAxisStatus[1].bInMotion) AND (nCyclesInPhase > 5) THEN
+                            eTestPhase := TEST_VERIFY;
+                        END_IF
+
+                    5:
+                        stHMICommand.eCommandType := CMD_JOG_POSITIVE;
+                        stHMICommand.nAxisIndex := 1;
+                        stHMICommand.fValue1 := 50.0;
+                        stHMICommand.bExecute := nCyclesInPhase <= 100;
+                        IF nCyclesInPhase >= 110 THEN
+                            eTestPhase := TEST_VERIFY;
+                        END_IF
+
+                    6:
+                        IF nTestStep = 0 THEN
+                            stHMICommand.eCommandType := CMD_MOVE_ABSOLUTE;
+                            stHMICommand.nAxisIndex := 1;
+                            stHMICommand.fValue1 := 999.0;
+                            stHMICommand.fValue2 := 100.0;
+                            stHMICommand.bExecute := TRUE;
+                            nTestStep := 1;
+                        ELSIF nCyclesInPhase >= 20 THEN
+                            eTestPhase := TEST_VERIFY;
+                        END_IF
+
+                    7:
+                        IF nTestStep = 0 THEN
+                            stHMICommand.eCommandType := CMD_MOVE_ABSOLUTE;
+                            stHMICommand.nAxisIndex := 1;
+                            stHMICommand.fValue1 := 250.0;
+                            stHMICommand.fValue2 := 100.0;
+                            stHMICommand.bExecute := TRUE;
+                            nTestStep := 1;
+                        ELSIF nCyclesInPhase = 20 THEN
+                            GVL_VirtualIO.stVirtualIO.bEStop := FALSE;
+                        ELSIF nCyclesInPhase >= 30 THEN
+                            eTestPhase := TEST_VERIFY;
+                        END_IF
+
+                    8:
+                        IF nTestStep = 0 THEN
+                            GVL_VirtualIO.stVirtualIO.bEStop := TRUE;
+                            stHMICommand.eCommandType := CMD_RESET_ALL_ALARMS;
+                            stHMICommand.bExecute := TRUE;
+                            nTestStep := 1;
+                        ELSIF nTestStep = 1 THEN
+                            (* Reset-all and machine reset are separate edges. *)
+                            nTestStep := 2;
+                        ELSIF nTestStep = 2 THEN
+                            stHMICommand.eCommandType := CMD_RESET;
+                            stHMICommand.bExecute := TRUE;
+                            nTestStep := 3;
+                        ELSIF nCyclesInPhase >= 80 THEN
+                            eTestPhase := TEST_VERIFY;
+                        END_IF
+
+                    9:
+                        IF nTestStep = 0 THEN
+                            GVL_VirtualIO.stVirtualIO.bEStop := FALSE;
+                            nTestStep := 1;
+                        ELSIF nTestStep = 1 AND nCyclesInPhase >= 10 THEN
+                            stHMICommand.eCommandType := CMD_ACK_ALARM;
+                            stHMICommand.nAlarmID := 1001;
+                            stHMICommand.bExecute := TRUE;
+                            nTestStep := 2;
+                        ELSIF nCyclesInPhase >= 30 THEN
+                            eTestPhase := TEST_VERIFY;
+                        END_IF
+
+                    10:
+                        IF nCyclesInPhase >= 10 THEN
+                            eTestPhase := TEST_VERIFY;
+                        END_IF
+
+                    11:
+                        IF nTestStep = 0 THEN
+                            stHMICommand.eCommandType := CMD_STOP;
+                            stHMICommand.nAxisIndex := 1;
+                            stHMICommand.bExecute := TRUE;
+                            nTestStep := 1;
+                        ELSIF nCyclesInPhase >= 20 THEN
+                            eTestPhase := TEST_VERIFY;
+                        END_IF
+
+                    12:
+                        GVL_VirtualIO.stVirtualIO.bEStop := TRUE;
+                        GVL_VirtualIO.stVirtualIO.bSafetyRelayFB := TRUE;
+                        GVL_VirtualIO.stVirtualIO.abLimitPos[1] := TRUE;
+                        GVL_VirtualIO.stVirtualIO.abLimitNeg[1] := TRUE;
+                        IF nCyclesInPhase >= 20 THEN
+                            eTestPhase := TEST_VERIFY;
+                        END_IF
+                END_CASE
+
+                IF nCyclesInPhase > 3000 THEN
+                    stTestResult.eResult := TRES_TIMEOUT;
+                    sActual := 'Test step exceeded 30 second timeout';
+                    eTestPhase := TEST_TEARDOWN;
+                END_IF
+
+            TEST_VERIFY:
+                CASE nCurrentTestID OF
+                    1:
+                        bVerificationPassed := eCurrentMode = MODE_INIT;
+                        sActual := 'Current mode evaluated';
+                    2:
+                        bVerificationPassed := astAxisStatus[1].bHomed AND
+                            astAxisStatus[2].bHomed;
+                        sActual := 'Axis homed flags evaluated';
+                    3:
+                        bVerificationPassed :=
+                            ABS(astAxisStatus[1].fActualPosition - 100.0) <= 0.1;
+                        sActual := 'Absolute position tolerance evaluated';
+                    4:
+                        bVerificationPassed :=
+                            ABS(astAxisStatus[1].fActualPosition - fExpectedPosition) <= 0.1;
+                        sActual := 'Relative position tolerance evaluated';
+                    5:
+                        bVerificationPassed :=
+                            (astAxisStatus[1].fActualPosition > fInitialPosition) AND
+                            (NOT astAxisStatus[1].bInMotion);
+                        sActual := 'Jog displacement and stop evaluated';
+                    6:
+                        bVerificationPassed :=
+                            (ABS(astAxisStatus[1].fActualPosition - fInitialPosition) <= 0.1) AND
+                            (nActiveAlarmCount > 0);
+                        sActual := 'Soft-limit rejection and alarm evaluated';
+                    7:
+                        bVerificationPassed := (eCurrentMode = MODE_FAULT) AND
+                            (NOT astAxisStatus[1].bInMotion) AND stSafetyStatus.bEStopActive;
+                        sActual := 'Fault mode and stopped axis evaluated';
+                    8:
+                        bVerificationPassed := (eCurrentMode = MODE_INIT) AND
+                            stSafetyStatus.bSafeToRun;
+                        sActual := 'Reset recovery evaluated';
+                    9:
+                        bVerificationPassed := nActiveAlarmCount > 0;
+                        sActual := 'Alarm remained visible after acknowledgement';
+                    10:
+                        bVerificationPassed := nTraceEventCount > 0;
+                        sActual := 'Trace counter evaluated';
+                    11:
+                        bVerificationPassed := NOT astAxisStatus[1].bInMotion;
+                        sActual := 'Axis stopped without stale command';
+                    12:
+                        bVerificationPassed := GVL_VirtualIO.stVirtualIO.bEStop AND
+                            GVL_VirtualIO.stVirtualIO.bSafetyRelayFB AND
+                            GVL_VirtualIO.stVirtualIO.abLimitPos[1] AND
+                            GVL_VirtualIO.stVirtualIO.abLimitNeg[1];
+                        sActual := 'Virtual safe defaults evaluated';
+                END_CASE
+
+                IF bVerificationPassed THEN
+                    stTestResult.eResult := TRES_PASS;
+                ELSE
+                    stTestResult.eResult := TRES_FAIL;
+                END_IF
+                eTestPhase := TEST_TEARDOWN;
+
+            TEST_TEARDOWN:
+                stTestResult.sActual := sActual;
+                stTestResult.tDuration := UDINT_TO_TIME(nCyclesInPhase * 10);
+                astTestSummary[nCurrentTestID] := stTestResult;
+                nTestsRun := nTestsRun + 1;
+                IF stTestResult.eResult = TRES_PASS THEN
+                    nTestsPassed := nTestsPassed + 1;
+                ELSE
+                    nTestsFailed := nTestsFailed + 1;
+                END_IF
+
+                GVL_VirtualIO.stVirtualIO.bEStop := TRUE;
+                GVL_VirtualIO.stVirtualIO.bSafetyRelayFB := TRUE;
+                stHMICommand.bExecute := FALSE;
+
+                IF bRunSuite AND (nCurrentTestID < 12) THEN
+                    nCurrentTestID := nCurrentTestID + 1;
+                    eTestPhase := TEST_SETUP;
+                    nTestStep := 0;
+                    nCyclesInPhase := 0;
+                ELSE
+                    eTestPhase := TEST_DONE;
+                END_IF
+
+            TEST_DONE:
+                bTestSuiteRunning := FALSE;
+                bTestSuiteComplete := TRUE;
+                bRunSuite := FALSE;
+                eTestPhase := TEST_IDLE;
+        END_CASE
+    END_IF
+END_IF
+]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>

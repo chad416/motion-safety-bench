@@ -92,4 +92,4 @@ When bSimulationMode is set to FALSE for hardware integration, each virtual fiel
 
 | Rev | Date | Author | Change |
 |-----|------|--------|--------|
-| 1.0 | 2026-06-21 | [Your name] | Initial issue |
+| 1.0 | 2026-06-21 | Project team | Initial issue |

@@ -1,0 +1,130 @@
+﻿{
+    "runId":  "MotionSafetyBench_Modular_FAT_Run02",
+    "generatedUtc":  "2026-06-21T17:30:44.1687184Z",
+    "targetNetId":  "local",
+    "targetPort":  852,
+    "adsState":  "Run",
+    "timeoutSeconds":  180,
+    "elapsedSeconds":  7.106,
+    "sampleCount":  46,
+    "completed":  true,
+    "passed":  true,
+    "testsRun":  12,
+    "testsPassed":  12,
+    "testsFailed":  0,
+    "finalTest":  12,
+    "finalMode":  5,
+    "finalPosition":  250,
+    "finalVelocity":  0,
+    "evidenceCsv":  "simulation/test_runs/MotionSafetyBench_Modular_FAT_Run02.csv",
+    "tests":  [
+                  {
+                      "testId":  1,
+                      "name":  "TR01 Power-up and Init",
+                      "result":  "PASS",
+                      "resultCode":  2,
+                      "expected":  "Safe startup reaches MODE_INIT",
+                      "actual":  "Current mode evaluated",
+                      "durationMs":  220
+                  },
+                  {
+                      "testId":  2,
+                      "name":  "TR02 Homing Complete",
+                      "result":  "PASS",
+                      "resultCode":  2,
+                      "expected":  "Both axes homed and MANUAL mode entered",
+                      "actual":  "Axis homed flags evaluated",
+                      "durationMs":  1020
+                  },
+                  {
+                      "testId":  3,
+                      "name":  "TR03 Absolute Move",
+                      "result":  "PASS",
+                      "resultCode":  2,
+                      "expected":  "Axis 1 reaches 100.0 mm",
+                      "actual":  "Absolute position tolerance evaluated",
+                      "durationMs":  530
+                  },
+                  {
+                      "testId":  4,
+                      "name":  "TR04 Relative Move",
+                      "result":  "PASS",
+                      "resultCode":  2,
+                      "expected":  "Axis 1 advances by 50.0 mm",
+                      "actual":  "Relative position tolerance evaluated",
+                      "durationMs":  280
+                  },
+                  {
+                      "testId":  5,
+                      "name":  "TR05 Manual Jog",
+                      "result":  "PASS",
+                      "resultCode":  2,
+                      "expected":  "Position increases only while jog is held",
+                      "actual":  "Jog displacement and stop evaluated",
+                      "durationMs":  1120
+                  },
+                  {
+                      "testId":  6,
+                      "name":  "TR06 Soft Limit Rejection",
+                      "result":  "PASS",
+                      "resultCode":  2,
+                      "expected":  "Target beyond +300 mm is rejected",
+                      "actual":  "Soft-limit rejection and alarm evaluated",
+                      "durationMs":  220
+                  },
+                  {
+                      "testId":  7,
+                      "name":  "TR07 E-stop During Motion",
+                      "result":  "PASS",
+                      "resultCode":  2,
+                      "expected":  "Motion stops and machine enters FAULT",
+                      "actual":  "Fault mode and stopped axis evaluated",
+                      "durationMs":  320
+                  },
+                  {
+                      "testId":  8,
+                      "name":  "TR08 Fault Reset Cycle",
+                      "result":  "PASS",
+                      "resultCode":  2,
+                      "expected":  "FAULT resets through RESET to INIT",
+                      "actual":  "Reset recovery evaluated",
+                      "durationMs":  820
+                  },
+                  {
+                      "testId":  9,
+                      "name":  "TR09 Alarm Acknowledgement",
+                      "result":  "PASS",
+                      "resultCode":  2,
+                      "expected":  "Active alarm accepts acknowledgement",
+                      "actual":  "Alarm remained visible after acknowledgement",
+                      "durationMs":  320
+                  },
+                  {
+                      "testId":  10,
+                      "name":  "TR10 Trace Logging",
+                      "result":  "PASS",
+                      "resultCode":  2,
+                      "expected":  "Trace event count increases",
+                      "actual":  "Trace counter evaluated",
+                      "durationMs":  120
+                  },
+                  {
+                      "testId":  11,
+                      "name":  "TR11 Warm Restart",
+                      "result":  "PASS",
+                      "resultCode":  2,
+                      "expected":  "No stale motion command after restart",
+                      "actual":  "Axis stopped without stale command",
+                      "durationMs":  220
+                  },
+                  {
+                      "testId":  12,
+                      "name":  "TR12 Cold-start Defaults",
+                      "result":  "PASS",
+                      "resultCode":  2,
+                      "expected":  "Safe defaults restored",
+                      "actual":  "Virtual safe defaults evaluated",
+                      "durationMs":  220
+                  }
+              ]
+}

@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="E_CommandType" Id="{25BC38EA-DFB4-4C5B-E142-E3724460142E}">
+    <Declaration><![CDATA[TYPE E_CommandType :
+(
+    CMD_NONE                := 0,
+    CMD_MODE_REQUEST        := 1,
+    CMD_JOG_POSITIVE        := 2,
+    CMD_JOG_NEGATIVE        := 3,
+    CMD_MOVE_ABSOLUTE       := 4,
+    CMD_MOVE_RELATIVE       := 5,
+    CMD_STOP                := 6,
+    CMD_RESET               := 7,
+    CMD_HOME                := 8,
+    CMD_ACK_ALARM           := 9,
+    CMD_RESET_ALL_ALARMS    := 10
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

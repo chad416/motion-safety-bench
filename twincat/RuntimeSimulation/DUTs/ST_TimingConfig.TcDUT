@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="ST_TimingConfig" Id="{2664C4BD-4F64-6080-4404-6BC804FA215E}">
+    <Declaration><![CDATA[TYPE ST_TimingConfig :
+STRUCT
+    tInitTimeout : TIME := T#10S;
+    tHomingTimeout : TIME := T#60S;
+    tHomingStepTimeout : TIME := T#15S;
+    nHomingMaxRetries : UINT := 2;
+    tCommandTimeout : TIME := T#5S;
+    tTestSettleTime : TIME := T#500MS;
+    tTestStepTimeout : TIME := T#30S;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

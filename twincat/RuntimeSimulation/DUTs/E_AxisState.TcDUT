@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="E_AxisState" Id="{D608B59C-213B-033C-8249-CC1B326E14D1}">
+    <Declaration><![CDATA[TYPE E_AxisState :
+(
+    AXIS_DISABLED           := 0,
+    AXIS_STANDSTILL         := 1,
+    AXIS_HOMING             := 2,
+    AXIS_DISCRETE_MOTION    := 3,
+    AXIS_CONTINUOUS_MOTION  := 4,
+    AXIS_STOPPING           := 5,
+    AXIS_ERRORSTOP          := 6
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

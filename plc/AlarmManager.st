@@ -1,83 +1,125 @@
 FUNCTION_BLOCK FB_AlarmManager
 VAR_INPUT
-    stSafetyStatus      : ST_SafetyStatus;
-    bAnyAxisError       : BOOL;
-    bHomingError        : BOOL;
-    bConfigInvalid      : BOOL;
-    bAckRequested       : BOOL;
-    nAckAlarmID         : UINT;
-    bResetAllRequested  : BOOL;
+    stSafetyStatus : ST_SafetyStatus;
+    bAnyAxisError : BOOL;
+    bHomingError : BOOL;
+    bConfigInvalid : BOOL;
+    bCommandRejected : BOOL;
+    bAckRequested : BOOL;
+    nAckAlarmID : UINT;
+    bResetAllRequested : BOOL;
 END_VAR
-
 VAR_OUTPUT
-    bAnyFaultActive     : BOOL;
-    bAnyAlarmActive     : BOOL;
-    nActiveAlarmCount   : UINT;
-    eHighestSeverity    : E_AlarmSeverity;
-    astActiveAlarms     : ARRAY[1..32] OF ST_Alarm;
+    bAnyFaultActive : BOOL;
+    bAnyAlarmActive : BOOL;
+    nActiveAlarmCount : UINT;
+    eHighestSeverity : E_AlarmSeverity;
+    astActiveAlarms : ARRAY[1..32] OF ST_Alarm;
+    astAlarmHistory : ARRAY[1..200] OF ST_Alarm;
+    nHistoryCount : UINT;
 END_VAR
-
 VAR
-    astAlarmBuffer      : ARRAY[1..32] OF ST_Alarm;
-    astHistory          : ARRAY[1..200] OF ST_Alarm;
-    nWriteIdx           : UINT;
-    nHistoryIdx         : UINT;
+    astAlarmBuffer : ARRAY[1..32] OF ST_Alarm;
+    abCondition : ARRAY[1..6] OF BOOL;
+    anAlarmID : ARRAY[1..6] OF UINT := [1001, 1002, 1003, 2001, 3001, 5001];
+    aeSeverity : ARRAY[1..6] OF E_AlarmSeverity :=
+        [SEV_CRITICAL, SEV_CRITICAL, SEV_FAULT, SEV_FAULT, SEV_FAULT, SEV_WARNING];
+    nIndex : UINT;
+    nOutputIndex : UINT;
+    nHistoryWriteIndex : UINT;
+    bWasActive : BOOL;
 END_VAR
 
-(* ========== CONDITION EVALUATION ========== *)
-METHOD EvaluateConditions
-(* Method: EvaluateConditions — Purpose: Check all alarm source conditions, raise alarms as needed *)
-(* TODO: IF NOT stSafetyStatus.bSafeToRun AND stSafetyStatus.bEStopActive THEN RaiseAlarm(1001, SEV_CRITICAL, 'E-stop active', 'SafetyManager', TRUE) *)
-(* TODO: IF stSafetyStatus.bRelayDiscrepancy THEN RaiseAlarm(1002, SEV_CRITICAL, 'Safety relay discrepancy', 'SafetyManager', TRUE) *)
-(* TODO: IF stSafetyStatus.bAnyLimitTripped THEN RaiseAlarm(1003, SEV_FAULT, 'Limit switch tripped', 'SafetyManager', TRUE) *)
-(* TODO: IF bAnyAxisError THEN RaiseAlarm(2001, SEV_FAULT, 'Axis error', 'AxisManager', TRUE) *)
-(* TODO: IF bHomingError THEN RaiseAlarm(3001, SEV_FAULT, 'Homing failed', 'HomingManager', TRUE) *)
-END_METHOD
+abCondition[1] := stSafetyStatus.bEStopActive;
+abCondition[2] := stSafetyStatus.bRelayDiscrepancy;
+abCondition[3] := stSafetyStatus.bAnyLimitTripped;
+abCondition[4] := bAnyAxisError;
+abCondition[5] := bHomingError;
+abCondition[6] := bConfigInvalid OR bCommandRejected;
 
-(* ========== OUTPUTS ========== *)
-METHOD UpdateOutputs
-(* Method: UpdateOutputs — Purpose: Update bAnyFaultActive, counts, highest severity *)
-(* TODO: iterate astAlarmBuffer, count ACTIVE alarms, find highest severity *)
-(* TODO: set bAnyFaultActive := any alarm with eSeverity >= SEV_FAULT is ACTIVE and unacknowledged *)
-(* TODO: copy active alarms to astActiveAlarms output *)
-END_METHOD
+FOR nIndex := 1 TO 6 DO
+    astAlarmBuffer[nIndex].nID := anAlarmID[nIndex];
+    astAlarmBuffer[nIndex].eSeverity := aeSeverity[nIndex];
+    astAlarmBuffer[nIndex].bRequiresAck := aeSeverity[nIndex] >= SEV_FAULT;
+    astAlarmBuffer[nIndex].bSelfClearing :=
+        (aeSeverity[nIndex] < SEV_FAULT) AND (nIndex <> 6);
 
-(* ========== RAISE ALARM ========== *)
-METHOD RaiseAlarm
-VAR_INPUT
-    nID         : UINT;
-    eSeverity   : E_AlarmSeverity;
-    sMessage    : STRING(80);
-    sSource     : STRING(40);
-    bRequiresAck: BOOL;
-END_VAR
-(* Method: RaiseAlarm — Purpose: Add or update alarm in buffer with timestamp *)
-(* TODO: check if alarm nID already active, if not find empty slot and populate *)
-(* TODO: set tRaiseTime := NOW_DT(), eState := ALARM_ACTIVE *)
-END_METHOD
+    CASE nIndex OF
+        1:
+            astAlarmBuffer[nIndex].sMessage := 'Emergency-stop chain is open';
+            astAlarmBuffer[nIndex].sSource := 'SafetyManager';
+        2:
+            astAlarmBuffer[nIndex].sMessage := 'Safety relay feedback discrepancy';
+            astAlarmBuffer[nIndex].sSource := 'SafetyManager';
+        3:
+            astAlarmBuffer[nIndex].sMessage := 'Hardware limit switch activated';
+            astAlarmBuffer[nIndex].sSource := 'SafetyManager';
+        4:
+            astAlarmBuffer[nIndex].sMessage := 'Axis reported an error';
+            astAlarmBuffer[nIndex].sSource := 'AxisManager';
+        5:
+            astAlarmBuffer[nIndex].sMessage := 'Homing sequence failed';
+            astAlarmBuffer[nIndex].sSource := 'HomingManager';
+        6:
+            astAlarmBuffer[nIndex].sMessage := 'Configuration or command validation warning';
+            astAlarmBuffer[nIndex].sSource := 'CommandParser';
+    END_CASE
 
-(* ========== ACKNOWLEDGE ALARM ========== *)
-METHOD AcknowledgeAlarm
-VAR_INPUT
-    nAlarmID : UINT;
-END_VAR
-(* Method: AcknowledgeAlarm — Purpose: Transition alarm from ACTIVE to ACKNOWLEDGED *)
-(* TODO: find alarm by nID, if eState=ALARM_ACTIVE set eState:=ALARM_ACKNOWLEDGED, tAckTime:=NOW_DT() *)
-END_METHOD
+    bWasActive := (astAlarmBuffer[nIndex].eState = ALARM_ACTIVE) OR
+        (astAlarmBuffer[nIndex].eState = ALARM_ACKNOWLEDGED);
 
-(* ========== RESET ALARM ========== *)
-METHOD ResetAlarm
-VAR_INPUT
-    nAlarmID : UINT;
-END_VAR
-(* Method: ResetAlarm — Purpose: Clear alarm if condition is gone *)
-(* TODO: find alarm by nID, if NOT bRequiresAck or already ACKNOWLEDGED, set eState:=ALARM_CLEARED *)
-END_METHOD
+    IF abCondition[nIndex] THEN
+        IF NOT bWasActive THEN
+            astAlarmBuffer[nIndex].eState := ALARM_ACTIVE;
+            nHistoryWriteIndex := nHistoryWriteIndex + 1;
+            IF nHistoryWriteIndex > cMAX_ALARM_HISTORY THEN
+                nHistoryWriteIndex := 1;
+            END_IF
+            astAlarmHistory[nHistoryWriteIndex] := astAlarmBuffer[nIndex];
+            IF nHistoryCount < cMAX_ALARM_HISTORY THEN
+                nHistoryCount := nHistoryCount + 1;
+            END_IF
+        END_IF
 
-(* ========== RESET ALL ALARMS ========== *)
-METHOD ResetAllAlarms
-(* Method: ResetAllAlarms — Purpose: Clear all clearable alarms *)
-(* TODO: iterate buffer, call ResetAlarm on each *)
-END_METHOD
+        IF bAckRequested AND
+           ((nAckAlarmID = astAlarmBuffer[nIndex].nID) OR (nAckAlarmID = 0)) THEN
+            astAlarmBuffer[nIndex].eState := ALARM_ACKNOWLEDGED;
+        END_IF
+    ELSE
+        IF astAlarmBuffer[nIndex].bSelfClearing OR
+           (astAlarmBuffer[nIndex].eState = ALARM_ACKNOWLEDGED) OR
+           bResetAllRequested THEN
+            astAlarmBuffer[nIndex].eState := ALARM_INACTIVE;
+        END_IF
+    END_IF
+
+    IF bResetAllRequested AND (NOT abCondition[nIndex]) THEN
+        astAlarmBuffer[nIndex].eState := ALARM_INACTIVE;
+    END_IF
+END_FOR
+
+nActiveAlarmCount := 0;
+nOutputIndex := 0;
+bAnyFaultActive := FALSE;
+bAnyAlarmActive := FALSE;
+eHighestSeverity := SEV_INFO;
+
+FOR nIndex := 1 TO cMAX_ALARMS DO
+    astActiveAlarms[nIndex].eState := ALARM_INACTIVE;
+    IF (astAlarmBuffer[nIndex].eState = ALARM_ACTIVE) OR
+       (astAlarmBuffer[nIndex].eState = ALARM_ACKNOWLEDGED) THEN
+        bAnyAlarmActive := TRUE;
+        nActiveAlarmCount := nActiveAlarmCount + 1;
+        nOutputIndex := nOutputIndex + 1;
+        astActiveAlarms[nOutputIndex] := astAlarmBuffer[nIndex];
+
+        IF astAlarmBuffer[nIndex].eSeverity > eHighestSeverity THEN
+            eHighestSeverity := astAlarmBuffer[nIndex].eSeverity;
+        END_IF
+        IF astAlarmBuffer[nIndex].eSeverity >= SEV_FAULT THEN
+            bAnyFaultActive := TRUE;
+        END_IF
+    END_IF
+END_FOR
 
 END_FUNCTION_BLOCK

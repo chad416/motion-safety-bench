@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="ST_ModePermits" Id="{70DCFFFD-4D05-8CF3-2969-A9C111B04EC6}">
+    <Declaration><![CDATA[TYPE ST_ModePermits :
+STRUCT
+    bAllowMotion : BOOL;
+    bAllowJog : BOOL;
+    bAllowHoming : BOOL;
+    bAllowAutoStart : BOOL;
+    bAllowModeChange : BOOL;
+    bAllowConfigEdit : BOOL;
+    bAllowAlarmReset : BOOL;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

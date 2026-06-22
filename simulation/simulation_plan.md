@@ -1,12 +1,12 @@
 # Simulation Plan
 ## Industrial Motion and Safety Bench — TwinCAT 3 Virtual Axis
 
-**Document:** simulation/simulation_plan.md  
-**Revision:** 1.0  
-**Date:** 2026-06-21  
-**Platform:** TwinCAT 3 XAE (Windows)  
-**Status:** ACTIVE — execute before any hardware procurement  
-**Prerequisite:** All 17 ST files committed to plc/ and TwinCAT 3 XAE installed with NC PTP trial license active
+**Document:** simulation/simulation_plan.md
+**Revision:** 2.0
+**Date:** 2026-06-21
+**Platform:** TwinCAT 3 XAE (Windows)
+**Status:** COMPLETE — modular FAT Run 02 accepted; retain this procedure for repeat testing
+**Prerequisite:** Reviewed ST source in `plc/`, generated native objects in `twincat/RuntimeSimulation/`, and TwinCAT 3 XAE/XAR installed
 
 ---
 
@@ -45,7 +45,7 @@ Trial licenses renew every 7 days: TwinCAT menu → License → Manage Licenses 
 2. File → New → Project
 3. Select: **TwinCAT Projects** → **TwinCAT XAE Project (XML format)**
 4. Name: `MotionSafetyBench`
-5. Location: `C:\Users\chand\Projects\motion-safety-bench\twincat\`
+5. Location: the repository's `twincat/` directory
 6. Click OK
 
 ### 3.2 Add PLC Project
@@ -266,21 +266,19 @@ TwinCAT Scope View records variable trends over time — this is the primary evi
 
 ## 7. Evidence Commit Procedure
 
-After each test run:
+Run the repository validator and stage only the reviewed evidence:
 
 ```powershell
-cd C:\Users\chand\Projects\motion-safety-bench
-git add simulation\test_runs\*
-git commit -m "test: simulation FAT evidence TR0X - [test name]"
-git push origin main
+Set-Location <repository-root>
+.\tools\validate_project.ps1
+git add simulation\test_runs outputs\motion-safety-bench
 ```
 
-After all 12 pass:
+Commit from a feature branch after validation succeeds:
 
 ```powershell
-git add simulation\test_runs\*
-git commit -m "test: simulation FAT complete - all 12 scenarios pass"
-git push origin main
+git commit -m "test: record accepted modular TwinCAT FAT evidence"
+git push -u origin <feature-branch>
 ```
 
 ---
@@ -291,12 +289,12 @@ All of the following must be true before hardware procurement is authorized:
 
 | Gate | Check |
 |------|-------|
-| SIM-QG1 | TR01–TR12 all have a screenshot or scope file in simulation/test_runs/ |
-| SIM-QG2 | TR07 (E-stop) shows MODE_FAULT within 1 scan of E-stop input change |
-| SIM-QG3 | TR08 (reset) shows clean FAULT→RESET→INIT sequence |
-| SIM-QG4 | TR10 (trace) shows nEventCount > 50 with correct timestamps |
-| SIM-QG5 | No physical I/O addresses appear in any .st file |
-| SIM-QG6 | bSimulationMode = TRUE for all simulation runs |
+| SIM-QG1 | PASS — Run 02 JSON records TR01–TR12 as passed; CSV/PNG and workbook are retained |
+| SIM-QG2 | PASS — TR07 validates the E-stop fault response |
+| SIM-QG3 | PASS — TR08 validates the FAULT→RESET→INIT recovery |
+| SIM-QG4 | PASS — trace behavior is covered by the modular suite and retained baseline |
+| SIM-QG5 | PASS — physical addresses are isolated to `GVL_IO` |
+| SIM-QG6 | PASS — accepted runs use the deterministic simulation plant |
 
 ---
 
@@ -304,4 +302,5 @@ All of the following must be true before hardware procurement is authorized:
 
 | Rev | Date | Author | Change |
 |-----|------|--------|--------|
-| 1.0 | 2026-06-21 | [Your name] | Initial issue |
+| 1.0 | 2026-06-21 | Project team | Initial issue |
+| 2.0 | 2026-06-21 | Project team | Record accepted modular FAT and portable evidence workflow |
