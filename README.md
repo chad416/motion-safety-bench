@@ -1,55 +1,106 @@
 # Industrial Motion & Safety Bench
 
-Industrial Motion & Safety Bench is a TwinCAT 3 IEC 61131-3 Structured Text skeleton for a two-axis motion and safety-oriented demonstration cell. It models configuration, safety interlocks, alarms, mode control, homing, PLCopen motion, HMI data aggregation, trace logging, and simulation-first testing for a portfolio-grade industrial controls project.
+A software-first TwinCAT 3 portfolio project for virtual commissioning of an industrial linear axis. It combines modular IEC 61131-3 Structured Text, a deterministic motion plant, safety-oriented interlocks, alarms, homing, HMI design, trace logging, automated FAT and retained Scope evidence.
 
-## File List
+> Safety-oriented demonstration only. This repository makes no SIL/PL or certified machine-safety claim.
 
-| File | Description |
-| --- | --- |
-| `plc/Enumerations.st` | Enumerated types for modes, axis states, alarms, commands, homing, trace sources, and tests. |
-| `plc/Structures.st` | Shared data structures for configuration, status, commands, alarms, traces, HMI data, and test results. |
-| `plc/GVL_Constants.st` | Global constants for axis counts, alarm limits, trace buffers, and test capacity. |
-| `plc/GVL_VirtualIO.st` | Global virtual I/O image used by simulation and TestHarness. |
-| `plc/GVL_IO.st` | Physical I/O mapping with TwinCAT `AT %I/%Q` addresses. |
-| `plc/ConfigPackage.st` | Configuration package FB for defaults, validation, and accessors. |
-| `plc/SafetyManager.st` | Safety manager FB for E-stop, relay feedback, limit status, and safe-to-run state. |
-| `plc/AlarmManager.st` | Alarm manager FB for condition evaluation, alarm buffers, acknowledgements, and resets. |
-| `plc/ModeManager.st` | Mode manager FB for machine state transitions and mode permits. |
-| `plc/AxisManager.st` | Axis manager FB for PLCopen power, move, jog, stop, reset, and axis status stubs. |
-| `plc/HomingManager.st` | Homing manager FB with per-axis homing state machine skeleton. |
-| `plc/CommandParser.st` | Command parser FB for HMI command validation and routing. |
-| `plc/TraceLogger.st` | Trace logger FB with pending queue, ring buffer, and recent event outputs. |
-| `plc/HMIModel.st` | HMI model FB that aggregates PLC status into `ST_HMIData`. |
-| `plc/TestHarness.st` | Simulation-only test harness FB for command injection, virtual I/O, and result tracking. |
-| `plc/MAIN.st` | Main PLC program wiring all FBs in the fixed cyclic call order. |
-| `README.md` | Project overview, import order, library requirements, and usage notes. |
+## Verified software baseline
 
-## TwinCAT 3 Import Order
+- TwinCAT 3.1 build 4024.75 runtime operational on Windows 11.
+- Generated modular PLC and complete runtime system compile with zero project errors.
+- Modular application downloaded to ADS port 852 with a 10 ms task and autostart boot project.
+- Modular FAT Run 02: **12 tests run, 12 passed, 0 failed**.
+- Runtime-restart check returned port 852 directly to ADS `Run`.
+- Recovery Scope Run 01: **25,445 samples**, position **0–215 mm**, velocity **0–200 mm/s**.
+- Dependency-free HMI prototype verified through a complete 12-test UI run.
 
-1. `plc/Enumerations.st`
-2. `plc/Structures.st`
-3. `plc/GVL_Constants.st`
-4. `plc/GVL_VirtualIO.st`
-5. `plc/GVL_IO.st`
-6. Import FB files in any order: `ConfigPackage.st`, `SafetyManager.st`, `AlarmManager.st`, `ModeManager.st`, `AxisManager.st`, `HomingManager.st`, `CommandParser.st`, `TraceLogger.st`, `HMIModel.st`, `TestHarness.st`
-7. `plc/MAIN.st`
+![Modular FAT motion evidence](simulation/test_runs/MotionSafetyBench_Modular_FAT_Run02.png)
 
-## Required TwinCAT Library
+## Architecture
 
-Add `Tc2_MC2` through TwinCAT > PLC > References. The project uses PLCopen motion function blocks such as `MC_Power`, `MC_Home`, `MC_MoveAbsolute`, `MC_MoveRelative`, `MC_Stop`, `MC_Reset`, and `MC_Jog`.
+```mermaid
+flowchart LR
+    CFG[ConfigPackage] --> SAFE[SafetyManager]
+    SAFE --> ALM[AlarmManager]
+    ALM --> MODE[ModeManager]
+    MODE --> CMD[CommandParser]
+    CMD --> HOME[HomingManager]
+    HOME --> AXIS[AxisManager]
+    AXIS --> TRACE[TraceLogger]
+    TRACE --> HMI[HMIModel]
+    HMI --> TEST[TestHarness]
+    TEST -. same command path .-> CMD
+```
 
-## Simulation
+The application supports OFF, INIT, HOMING, MANUAL, AUTO, FAULT and RESET. AxisManager selects either a deterministic software plant or a PLCopen path with linked `AXIS_REF` values.
 
-Simulation mode is enabled by default through `fbConfig.stMachineConfig.bSimulationMode := TRUE`. Keep simulation mode enabled when running the virtual I/O and test harness workflow.
+## Repository
 
-## TestHarness
+| Path | Contents |
+|---|---|
+| `plc/` | Reviewed ST source of truth |
+| `twincat/RuntimeSimulation/` | Generated native TwinCAT DUT/GVL/POU project |
+| `twincat/RuntimeSystem/` | Runnable local XAR/NC simulation system on ADS port 852 |
+| `simulation/` | Virtual I/O/axis setup and retained evidence |
+| `hmi/prototype/` | Animated browser HMI demonstration |
+| `docs/` | URS, FDS, SDS, I/O, FAT/SAT, FMEA and engineering records |
+| `hardware/` | Provisional BOM, risks and wiring plan |
+| `portfolio/` | Case study and demonstration scripts |
+| `tools/` | Generation, evidence and validation automation |
 
-`bSimulationMode` must be `TRUE` before running tests. Start a single test with `fbTest.RunTest(nTestID)` or run the suite by setting `fbTest.bRunAllTests := TRUE`.
+## Quick start
 
-## Implementation Status
+Open `twincat\MotionSafetyBenchRuntime.sln` when using TwinCAT XAE. Do not open
+`MotionSafetyBenchPLC.plcproj` directly; it is a nested PLC project and requires
+the parent TwinCAT system solution.
 
-This is a skeleton. Method bodies intentionally contain TODO comments, and the detailed implementation follows in the next phase.
+### Generate portable TwinCAT objects
 
-## Safety Note
+```powershell
+powershell -ExecutionPolicy Bypass -File .\tools\generate_twincat_project.ps1
+```
 
-This repository demonstrates a safety-oriented design approach only. It does not make any certified SIL or PL safety claim.
+Compile the complete runtime:
+
+```powershell
+# Close any interactive TwinCAT XAE Shell windows first.
+powershell -ExecutionPolicy Bypass -File .\tools\build_twincat_solution.ps1 `
+  -SolutionRelativePath 'twincat\MotionSafetyBenchRuntime.sln'
+```
+
+Deploy/activate the local hardware-free simulation target:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\tools\deploy_twincat_runtime.ps1 `
+  -Action Deploy
+```
+
+Run and capture the modular FAT:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\tools\run_modular_fat.ps1
+```
+
+### Run the HMI prototype
+
+```powershell
+node .\tools\serve_hmi.mjs
+```
+
+Open `http://127.0.0.1:4173` and choose **Run 12-test simulation**.
+
+### Rebuild evidence workbook
+
+```powershell
+node .\tools\build_simulation_evidence.mjs
+```
+
+Output: `outputs/motion-safety-bench/MotionSafetyBench_Simulation_Evidence.xlsx`.
+
+## Evidence integrity
+
+Run 01 proves the recovered TwinCAT runtime/ADS/Scope path. Run 02 is the accepted modular-application FAT and includes compile, download, 12/12 execution and boot-restart evidence. Hardware acceptance is governed by `docs/10_SAT_protocol.md`; simulation results are never substituted for hardware evidence.
+
+## Phase 2
+
+The preferred bench uses EK1100, EL1008, EL2008 and EL7211-0010 with a compatible 48 V servo. Procurement remains on hold until motor/load sizing and certified safety review are complete.

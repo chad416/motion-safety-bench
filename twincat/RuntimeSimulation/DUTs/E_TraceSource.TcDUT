@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="E_TraceSource" Id="{CF875513-271F-2509-5276-EB5024DBB6BD}">
+    <Declaration><![CDATA[TYPE E_TraceSource :
+(
+    TRACE_MODE      := 0,
+    TRACE_AXIS      := 1,
+    TRACE_HOMING    := 2,
+    TRACE_SAFETY    := 3,
+    TRACE_ALARM     := 4,
+    TRACE_COMMAND   := 5,
+    TRACE_CONFIG    := 6,
+    TRACE_TEST      := 7
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

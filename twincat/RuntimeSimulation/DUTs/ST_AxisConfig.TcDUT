@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="ST_AxisConfig" Id="{045CC3C0-4670-A7F6-21DF-2DFF47265E7E}">
+    <Declaration><![CDATA[TYPE ST_AxisConfig :
+STRUCT
+    fMaxVelocity : LREAL := 500.0;
+    fMaxAcceleration : LREAL := 2000.0;
+    fMaxDeceleration : LREAL := 2000.0;
+    fJerkLimit : LREAL := 10000.0;
+    fSoftLimitPositive : LREAL := 300.0;
+    fSoftLimitNegative : LREAL := -10.0;
+    fHomingVelocity : LREAL := 50.0;
+    fHomingBackoffVelocity : LREAL := 10.0;
+    bHomingDirectionPositive : BOOL := FALSE;
+    fHomeOffset : LREAL := 0.0;
+    fPositionErrorLimit : LREAL := 2.0;
+    fJogVelocity : LREAL := 100.0;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

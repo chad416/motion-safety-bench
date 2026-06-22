@@ -269,7 +269,7 @@ The last 50 trace entries SHALL be visible in real time on the Diagnostics/Trace
 
 | Rev | Date | Author | Change |
 |-----|------|--------|--------|
-| 1.0 | 2026-06-20 | [Your name] | Initial issue — baseline for software development |
+| 1.0 | 2026-06-20 | Project team | Initial issue — baseline for software development |
 
 ---
 *Paired with: docs/02_FDS.md (behavior), docs/03_SDS.md (software design), docs/04_IO_list.md (I/O detail)*

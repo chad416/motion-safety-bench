@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="ST_MotionCommand" Id="{4FFC1366-D3E5-BA3A-0E01-15667E3E1547}">
+    <Declaration><![CDATA[TYPE ST_MotionCommand :
+STRUCT
+    eType : E_CommandType;
+    nAxisIndex : UINT;
+    fTargetPosition : LREAL;
+    fDistance : LREAL;
+    fVelocity : LREAL;
+    bJogPositive : BOOL;
+    bJogNegative : BOOL;
+    bExecute : BOOL;
+    eStatus : E_CommandStatus;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

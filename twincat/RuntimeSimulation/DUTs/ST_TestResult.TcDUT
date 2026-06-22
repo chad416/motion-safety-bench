@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="ST_TestResult" Id="{0B503AA5-D8C7-50FB-D7E6-584DC9F7FB51}">
+    <Declaration><![CDATA[TYPE ST_TestResult :
+STRUCT
+    nTestID : UINT;
+    sTestName : STRING(80);
+    eResult : E_TestResult;
+    sExpected : STRING(120);
+    sActual : STRING(120);
+    tDuration : TIME;
+    tTimestamp : DT;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

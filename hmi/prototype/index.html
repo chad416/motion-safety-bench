@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Motion Safety Bench — HMI Prototype</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">INDUSTRIAL MOTION &amp; SAFETY BENCH</p>
+      <h1>Machine overview</h1>
+    </div>
+    <div class="topbar-status">
+      <span id="connectionBadge" class="badge good">PLC SIM ONLINE</span>
+      <span id="clock" class="clock">--:--:--</span>
+    </div>
+  </header>
+
+  <nav class="tabs" aria-label="HMI sections">
+    <button class="tab active" data-panel="overview">Overview</button>
+    <button class="tab" data-panel="tests">FAT tests</button>
+    <button class="tab" data-panel="diagnostics">Diagnostics</button>
+  </nav>
+
+  <main>
+    <section id="overview" class="panel active">
+      <div class="kpi-grid">
+        <article class="kpi">
+          <span>Machine mode</span>
+          <strong id="modeValue">INIT</strong>
+          <small id="modeDetail">Ready for simulation</small>
+        </article>
+        <article class="kpi">
+          <span>Axis position</span>
+          <strong><span id="positionValue">0.0</span> <em>mm</em></strong>
+          <small>Target <span id="targetValue">0.0</span> mm</small>
+        </article>
+        <article class="kpi">
+          <span>Axis velocity</span>
+          <strong><span id="velocityValue">0.0</span> <em>mm/s</em></strong>
+          <small id="motionState">Standstill</small>
+        </article>
+        <article class="kpi">
+          <span>Safety chain</span>
+          <strong id="safetyValue" class="text-good">HEALTHY</strong>
+          <small id="alarmCount">0 active alarms</small>
+        </article>
+      </div>
+
+      <div class="overview-grid">
+        <article class="card machine-card">
+          <div class="card-title">
+            <div><span>VIRTUAL CELL</span><h2>Linear axis</h2></div>
+            <span id="axisStateBadge" class="badge neutral">STANDSTILL</span>
+          </div>
+          <div class="machine-stage" aria-label="Animated virtual linear axis">
+            <div class="limit limit-neg"><span>−10</span></div>
+            <div class="rail">
+              <div class="home-marker"><span>HOME</span></div>
+              <div id="carriage" class="carriage">
+                <div class="carriage-face"></div>
+                <span>AXIS 1</span>
+              </div>
+              <div id="targetMarker" class="target-marker"><span>TARGET</span></div>
+            </div>
+            <div class="limit limit-pos"><span>300</span></div>
+          </div>
+          <div class="scale"><span>−10 mm</span><span>0</span><span>100</span><span>200</span><span>300 mm</span></div>
+
+          <div class="controls">
+            <button id="runButton" class="primary">Run 12-test simulation</button>
+            <button id="pauseButton">Pause</button>
+            <button id="resetButton">Reset</button>
+            <button id="estopButton" class="danger">E-STOP</button>
+          </div>
+        </article>
+
+        <article class="card trend-card">
+          <div class="card-title">
+            <div><span>LIVE TREND</span><h2>Position &amp; velocity</h2></div>
+            <div class="legend"><i class="position"></i>Position <i class="velocity"></i>Velocity</div>
+          </div>
+          <canvas id="trendCanvas" width="900" height="370" aria-label="Live position and velocity trend"></canvas>
+        </article>
+      </div>
+
+      <div class="status-strip">
+        <div><i id="estopLamp" class="lamp good"></i><span>E-stop healthy</span></div>
+        <div><i id="relayLamp" class="lamp good"></i><span>Safety relay</span></div>
+        <div><i id="homedLamp" class="lamp"></i><span>Axis homed</span></div>
+        <div><i id="motionLamp" class="lamp"></i><span>Motion active</span></div>
+        <div><i id="faultLamp" class="lamp"></i><span>Fault active</span></div>
+      </div>
+    </section>
+
+    <section id="tests" class="panel">
+      <article class="card">
+        <div class="card-title">
+          <div><span>FACTORY ACCEPTANCE TEST</span><h2>Automated scenario results</h2></div>
+          <div><strong id="testScore">0 / 12</strong><small> passed</small></div>
+        </div>
+        <div id="testGrid" class="test-grid"></div>
+      </article>
+    </section>
+
+    <section id="diagnostics" class="panel">
+      <div class="diagnostic-grid">
+        <article class="card">
+          <div class="card-title"><div><span>EVENT BUFFER</span><h2>Recent events</h2></div></div>
+          <ol id="eventLog" class="event-log"></ol>
+        </article>
+        <article class="card">
+          <div class="card-title"><div><span>RUNTIME</span><h2>Engineering status</h2></div></div>
+          <dl class="details">
+            <div><dt>Runtime</dt><dd>TwinCAT 3 simulation model</dd></div>
+            <div><dt>Task cycle</dt><dd>10 ms</dd></div>
+            <div><dt>ADS port</dt><dd>852</dd></div>
+            <div><dt>Simulation evidence</dt><dd>CSV verified</dd></div>
+            <div><dt>Safety claim</dt><dd>Concept only — not certified</dd></div>
+          </dl>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <span>SIMULATION MODE</span>
+    <span>Software plant model • Hardware validates, not discovers, the design</span>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

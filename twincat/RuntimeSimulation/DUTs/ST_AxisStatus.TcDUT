@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="ST_AxisStatus" Id="{111F46E5-27DE-BDCB-3A42-332BA8E5DF5F}">
+    <Declaration><![CDATA[TYPE ST_AxisStatus :
+STRUCT
+    fActualPosition : LREAL;
+    fActualVelocity : LREAL;
+    fActualTorque : LREAL;
+    eAxisState : E_AxisState;
+    bEnabled : BOOL;
+    bHomed : BOOL;
+    bInMotion : BOOL;
+    bError : BOOL;
+    nErrorCode : UDINT;
+    bPositiveLimitActive : BOOL;
+    bNegativeLimitActive : BOOL;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

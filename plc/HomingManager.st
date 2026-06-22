@@ -1,65 +1,151 @@
 FUNCTION_BLOCK FB_HomingManager
 VAR_INPUT
-    eCurrentMode        : E_MachineMode;
-    bStartHoming        : BOOL;
-    bAbortHoming        : BOOL;
-    abHomeSwitchActive  : ARRAY[1..2] OF BOOL;
-    astAxisConfig       : ARRAY[1..2] OF ST_AxisConfig;
+    eCurrentMode : E_MachineMode;
+    bStartHoming : BOOL;
+    bAbortHoming : BOOL;
+    abHomeSwitchActive : ARRAY[1..2] OF BOOL;
+    astAxisConfig : ARRAY[1..2] OF ST_AxisConfig;
+    stTimingConfig : ST_TimingConfig;
 END_VAR
-
 VAR_OUTPUT
-    abAxisHomed     : ARRAY[1..2] OF BOOL;
-    bAllAxesHomed   : BOOL;
-    bHomingActive   : BOOL;
-    bHomingError    : BOOL;
-    eHomingState    : E_HomingState;
+    abAxisHomed : ARRAY[1..2] OF BOOL;
+    abSeekPositive : ARRAY[1..2] OF BOOL;
+    abSeekNegative : ARRAY[1..2] OF BOOL;
+    abSetPosition : ARRAY[1..2] OF BOOL;
+    afHomePosition : ARRAY[1..2] OF LREAL;
+    bAllAxesHomed : BOOL;
+    bHomingActive : BOOL;
+    bHomingComplete : BOOL;
+    bHomingError : BOOL;
+    eHomingState : E_HomingState;
+    nCurrentAxis : UINT;
 END_VAR
-
 VAR
-    aeAxisHomingStep    : ARRAY[1..2] OF E_HomingState;
-    anRetryCount        : ARRAY[1..2] OF UINT;
-    atonStepTimeout     : ARRAY[1..2] OF TON;
-    fbMcHome1           : MC_Home;
-    fbMcHome2           : MC_Home;
-    rtrigStart          : R_TRIG;
-    nCurrentAxis        : UINT;
+    aeAxisHomingStep : ARRAY[1..2] OF E_HomingState;
+    anRetryCount : ARRAY[1..2] OF UINT;
+    tonStepTimeout : TON;
+    rtrigStart : R_TRIG;
+    nAxis : UINT;
 END_VAR
 
-METHOD Cyclic
-(* Method: Cyclic - Purpose: Execute homing state machine for each axis when in MODE_HOMING *)
-(* TODO: IF eCurrentMode <> MODE_HOMING THEN RETURN END_IF *)
-(* TODO: rtrigStart detect rising edge of bStartHoming *)
-(* TODO: IF bAbortHoming THEN AbortHoming END_IF *)
-(* TODO: FOR each axis: CASE aeAxisHomingStep[i] with 7 steps from SDS 4.3 *)
-CASE aeAxisHomingStep[1] OF
-    HOM_IDLE:
-        (* TODO: wait for start signal *)
-    HOM_SEEKING_SWITCH:
-        (* TODO: MC_Home Execute, start timeout *)
-    HOM_BACKING_OFF:
-        (* TODO: backing off logic *)
-    HOM_SEEKING_INDEX:
-        (* TODO: slow approach *)
-    HOM_SETTING_POS:
-        (* TODO: MC_Home.Done check, set abAxisHomed[1] := TRUE *)
-    HOM_COMPLETE:
-        (* TODO: set abAxisHomed, check all axes *)
-    HOM_ERROR:
-        (* TODO: set bHomingError, log *)
-END_CASE
-(* TODO: bAllAxesHomed := all abAxisHomed TRUE *)
-(* TODO: eHomingState := aeAxisHomingStep[1] (primary axis) *)
-END_METHOD
+rtrigStart(CLK := bStartHoming);
 
-METHOD StartHoming
-(* Method: StartHoming - Purpose: Reset and begin homing for all unhomed axes *)
-(* TODO: FOR each axis: IF NOT abAxisHomed[i] THEN aeAxisHomingStep[i] := HOM_SEEKING_SWITCH END_IF *)
-END_METHOD
+FOR nAxis := 1 TO cMAX_AXES DO
+    abSeekPositive[nAxis] := FALSE;
+    abSeekNegative[nAxis] := FALSE;
+    abSetPosition[nAxis] := FALSE;
+END_FOR
 
-METHOD AbortHoming
-(* Method: AbortHoming - Purpose: Stop motion and set all axes to HOM_ERROR *)
-(* TODO: FOR each axis: aeAxisHomingStep[i] := HOM_ERROR *)
-(* TODO: set bHomingError := TRUE, bHomingActive := FALSE *)
-END_METHOD
+IF rtrigStart.Q AND
+   ((eCurrentMode = MODE_INIT) OR (eCurrentMode = MODE_HOMING) OR
+    (eCurrentMode = MODE_MANUAL_JOG)) THEN
+    bHomingActive := TRUE;
+    bHomingComplete := FALSE;
+    bHomingError := FALSE;
+    nCurrentAxis := 1;
+    FOR nAxis := 1 TO cMAX_AXES DO
+        abAxisHomed[nAxis] := FALSE;
+        aeAxisHomingStep[nAxis] := HOM_SEEKING_SWITCH;
+        anRetryCount[nAxis] := 0;
+    END_FOR
+END_IF
+
+(* A general machine fault must stop an active homing sequence, but it must not
+   invent a homing fault when homing was not running. Otherwise an E-stop
+   during ordinary motion latches HOM_ERROR and prevents the reset cycle. *)
+IF bAbortHoming OR ((eCurrentMode = MODE_FAULT) AND bHomingActive) THEN
+    bHomingActive := FALSE;
+    bHomingComplete := FALSE;
+    bHomingError := TRUE;
+    FOR nAxis := 1 TO cMAX_AXES DO
+        aeAxisHomingStep[nAxis] := HOM_ERROR;
+    END_FOR
+END_IF
+
+IF bHomingActive AND (nCurrentAxis >= 1) AND (nCurrentAxis <= cMAX_AXES) THEN
+    tonStepTimeout(IN := TRUE, PT := stTimingConfig.tHomingStepTimeout);
+
+    CASE aeAxisHomingStep[nCurrentAxis] OF
+        HOM_SEEKING_SWITCH:
+            IF astAxisConfig[nCurrentAxis].bHomingDirectionPositive THEN
+                abSeekPositive[nCurrentAxis] := TRUE;
+            ELSE
+                abSeekNegative[nCurrentAxis] := TRUE;
+            END_IF
+
+            IF abHomeSwitchActive[nCurrentAxis] THEN
+                aeAxisHomingStep[nCurrentAxis] := HOM_BACKING_OFF;
+                tonStepTimeout(IN := FALSE);
+            ELSIF tonStepTimeout.Q THEN
+                IF anRetryCount[nCurrentAxis] < stTimingConfig.nHomingMaxRetries THEN
+                    anRetryCount[nCurrentAxis] := anRetryCount[nCurrentAxis] + 1;
+                    tonStepTimeout(IN := FALSE);
+                ELSE
+                    aeAxisHomingStep[nCurrentAxis] := HOM_ERROR;
+                END_IF
+            END_IF
+
+        HOM_BACKING_OFF:
+            IF astAxisConfig[nCurrentAxis].bHomingDirectionPositive THEN
+                abSeekNegative[nCurrentAxis] := TRUE;
+            ELSE
+                abSeekPositive[nCurrentAxis] := TRUE;
+            END_IF
+            IF NOT abHomeSwitchActive[nCurrentAxis] THEN
+                aeAxisHomingStep[nCurrentAxis] := HOM_SEEKING_INDEX;
+                tonStepTimeout(IN := FALSE);
+            ELSIF tonStepTimeout.Q THEN
+                aeAxisHomingStep[nCurrentAxis] := HOM_ERROR;
+            END_IF
+
+        HOM_SEEKING_INDEX:
+            IF astAxisConfig[nCurrentAxis].bHomingDirectionPositive THEN
+                abSeekPositive[nCurrentAxis] := TRUE;
+            ELSE
+                abSeekNegative[nCurrentAxis] := TRUE;
+            END_IF
+            IF abHomeSwitchActive[nCurrentAxis] THEN
+                aeAxisHomingStep[nCurrentAxis] := HOM_SETTING_POS;
+                tonStepTimeout(IN := FALSE);
+            ELSIF tonStepTimeout.Q THEN
+                aeAxisHomingStep[nCurrentAxis] := HOM_ERROR;
+            END_IF
+
+        HOM_SETTING_POS:
+            afHomePosition[nCurrentAxis] := astAxisConfig[nCurrentAxis].fHomeOffset;
+            abSetPosition[nCurrentAxis] := TRUE;
+            abAxisHomed[nCurrentAxis] := TRUE;
+            aeAxisHomingStep[nCurrentAxis] := HOM_COMPLETE;
+
+        HOM_COMPLETE:
+            IF nCurrentAxis < cMAX_AXES THEN
+                nCurrentAxis := nCurrentAxis + 1;
+                tonStepTimeout(IN := FALSE);
+            ELSE
+                bHomingActive := FALSE;
+                bHomingComplete := TRUE;
+            END_IF
+
+        HOM_ERROR:
+            bHomingActive := FALSE;
+            bHomingComplete := FALSE;
+            bHomingError := TRUE;
+    END_CASE
+END_IF
+
+bAllAxesHomed := TRUE;
+FOR nAxis := 1 TO cMAX_AXES DO
+    bAllAxesHomed := bAllAxesHomed AND abAxisHomed[nAxis];
+END_FOR
+
+IF bHomingError THEN
+    eHomingState := HOM_ERROR;
+ELSIF bHomingComplete THEN
+    eHomingState := HOM_COMPLETE;
+ELSIF (nCurrentAxis >= 1) AND (nCurrentAxis <= cMAX_AXES) THEN
+    eHomingState := aeAxisHomingStep[nCurrentAxis];
+ELSE
+    eHomingState := HOM_IDLE;
+END_IF
 
 END_FUNCTION_BLOCK

@@ -1,0 +1,87 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <FileVersion>1.0.0.0</FileVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{44E41B1F-1282-47A8-9246-D06D26944F39}</ProjectGuid>
+    <SubObjectsSortedByName>True</SubObjectsSortedByName>
+    <DownloadApplicationInfo>true</DownloadApplicationInfo>
+    <WriteProductVersion>true</WriteProductVersion>
+    <GenerateTpy>false</GenerateTpy>
+    <Name>MotionSafetyBenchPLC</Name>
+    <ProgramVersion>3.1.4024.0</ProgramVersion>
+    <Application>{8691C62D-25EA-D03C-5546-97A62AE95C91}</Application>
+    <TypeSystem>{491255B2-DFCE-BE84-25EA-D08FCD5613B0}</TypeSystem>
+    <Implicit_Task_Info>{CC9AEECE-CD74-94A8-733D-A085C64FB0BB}</Implicit_Task_Info>
+    <Implicit_KindOfTask>{BE8CA9B4-FE4F-DB14-5736-B215B3A862D3}</Implicit_KindOfTask>
+    <Implicit_Jitter_Distribution>{09447ADD-5DAA-8B6A-7003-BBDB1040535E}</Implicit_Jitter_Distribution>
+    <LibraryReferences>{476D8EE8-EEEB-2826-1AD0-012AF98B9D76}</LibraryReferences>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="PlcTask.TcTTO"><SubType>Code</SubType></Compile>
+    <Compile Include="DUTs\E_MachineMode.TcDUT"><SubType>Code</SubType></Compile>
+    <Compile Include="DUTs\E_AxisState.TcDUT"><SubType>Code</SubType></Compile>
+    <Compile Include="DUTs\E_AlarmSeverity.TcDUT"><SubType>Code</SubType></Compile>
+    <Compile Include="DUTs\E_AlarmState.TcDUT"><SubType>Code</SubType></Compile>
+    <Compile Include="DUTs\E_CommandType.TcDUT"><SubType>Code</SubType></Compile>
+    <Compile Include="DUTs\E_CommandStatus.TcDUT"><SubType>Code</SubType></Compile>
+    <Compile Include="DUTs\E_HomingState.TcDUT"><SubType>Code</SubType></Compile>
+    <Compile Include="DUTs\E_TraceSource.TcDUT"><SubType>Code</SubType></Compile>
+    <Compile Include="DUTs\E_TestPhase.TcDUT"><SubType>Code</SubType></Compile>
+    <Compile Include="DUTs\E_TestResult.TcDUT"><SubType>Code</SubType></Compile>
+    <Compile Include="DUTs\ST_AxisConfig.TcDUT"><SubType>Code</SubType></Compile>
+    <Compile Include="DUTs\ST_AxisStatus.TcDUT"><SubType>Code</SubType></Compile>
+    <Compile Include="DUTs\ST_SafetyConfig.TcDUT"><SubType>Code</SubType></Compile>
+    <Compile Include="DUTs\ST_SafetyStatus.TcDUT"><SubType>Code</SubType></Compile>
+    <Compile Include="DUTs\ST_Alarm.TcDUT"><SubType>Code</SubType></Compile>
+    <Compile Include="DUTs\ST_HMICommand.TcDUT"><SubType>Code</SubType></Compile>
+    <Compile Include="DUTs\ST_MotionCommand.TcDUT"><SubType>Code</SubType></Compile>
+    <Compile Include="DUTs\ST_TraceEvent.TcDUT"><SubType>Code</SubType></Compile>
+    <Compile Include="DUTs\ST_ModePermits.TcDUT"><SubType>Code</SubType></Compile>
+    <Compile Include="DUTs\ST_TimingConfig.TcDUT"><SubType>Code</SubType></Compile>
+    <Compile Include="DUTs\ST_TraceConfig.TcDUT"><SubType>Code</SubType></Compile>
+    <Compile Include="DUTs\ST_AlarmConfig.TcDUT"><SubType>Code</SubType></Compile>
+    <Compile Include="DUTs\ST_MachineConfig.TcDUT"><SubType>Code</SubType></Compile>
+    <Compile Include="DUTs\ST_TestResult.TcDUT"><SubType>Code</SubType></Compile>
+    <Compile Include="DUTs\ST_HMIData.TcDUT"><SubType>Code</SubType></Compile>
+    <Compile Include="DUTs\ST_VirtualIO.TcDUT"><SubType>Code</SubType></Compile>
+    <Compile Include="GVLs\GVL_Constants.TcGVL"><SubType>Code</SubType></Compile>
+    <Compile Include="GVLs\GVL_VirtualIO.TcGVL"><SubType>Code</SubType></Compile>
+    <Compile Include="GVLs\GVL_IO.TcGVL"><SubType>Code</SubType></Compile>
+    <Compile Include="POUs\FB_ConfigPackage.TcPOU"><SubType>Code</SubType></Compile>
+    <Compile Include="POUs\FB_SafetyManager.TcPOU"><SubType>Code</SubType></Compile>
+    <Compile Include="POUs\FB_AlarmManager.TcPOU"><SubType>Code</SubType></Compile>
+    <Compile Include="POUs\FB_ModeManager.TcPOU"><SubType>Code</SubType></Compile>
+    <Compile Include="POUs\FB_CommandParser.TcPOU"><SubType>Code</SubType></Compile>
+    <Compile Include="POUs\FB_HomingManager.TcPOU"><SubType>Code</SubType></Compile>
+    <Compile Include="POUs\FB_AxisManager.TcPOU"><SubType>Code</SubType></Compile>
+    <Compile Include="POUs\FB_TraceLogger.TcPOU"><SubType>Code</SubType></Compile>
+    <Compile Include="POUs\FB_HMIModel.TcPOU"><SubType>Code</SubType></Compile>
+    <Compile Include="POUs\FB_TestHarness.TcPOU"><SubType>Code</SubType></Compile>
+    <Compile Include="POUs\MAIN.TcPOU"><SubType>Code</SubType></Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="DUTs" />
+    <Folder Include="GVLs" />
+    <Folder Include="POUs" />
+    <Folder Include="VISUs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PlaceholderReference Include="Tc2_MC2">
+      <DefaultResolution>Tc2_MC2, * (Beckhoff Automation GmbH)</DefaultResolution>
+      <Namespace>Tc2_MC2</Namespace>
+    </PlaceholderReference>
+    <PlaceholderReference Include="Tc2_Standard">
+      <DefaultResolution>Tc2_Standard, * (Beckhoff Automation GmbH)</DefaultResolution>
+      <Namespace>Tc2_Standard</Namespace>
+    </PlaceholderReference>
+    <PlaceholderReference Include="Tc2_System">
+      <DefaultResolution>Tc2_System, * (Beckhoff Automation GmbH)</DefaultResolution>
+      <Namespace>Tc2_System</Namespace>
+    </PlaceholderReference>
+    <PlaceholderReference Include="Tc3_Module">
+      <DefaultResolution>Tc3_Module, * (Beckhoff Automation GmbH)</DefaultResolution>
+      <Namespace>Tc3_Module</Namespace>
+    </PlaceholderReference>
+  </ItemGroup>
+</Project>

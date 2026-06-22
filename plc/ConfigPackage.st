@@ -1,51 +1,100 @@
 FUNCTION_BLOCK FB_ConfigPackage
+VAR_INPUT
+    bReloadDefaults : BOOL;
+END_VAR
 VAR_OUTPUT
     stMachineConfig : ST_MachineConfig;
     bSimulationMode : BOOL;
-    bConfigValid    : BOOL;
-    bConfigChanged  : BOOL;
+    bConfigValid : BOOL;
+    bConfigChanged : BOOL;
+    sValidationError : STRING(120);
 END_VAR
-
 VAR
-    bInitialized    : BOOL;
-    stPrevConfig    : ST_MachineConfig;
+    bInitialized : BOOL;
+    rtrigReload : R_TRIG;
+    nAxis : UINT;
 END_VAR
 
-(* ========== CYCLIC PROCESSING ========== *)
-METHOD Cyclic
-(* Method: Cyclic — Purpose: Detect config changes, validate on change, set bConfigValid *)
-(* TODO: compare stMachineConfig to stPrevConfig, if different set bConfigChanged, call ValidateAll *)
-(* TODO: set bSimulationMode := stMachineConfig.bSimulationMode *)
-END_METHOD
+rtrigReload(CLK := bReloadDefaults);
+bConfigChanged := FALSE;
 
-(* ========== DEFAULT CONFIGURATION ========== *)
-METHOD LoadDefaults
-(* Method: LoadDefaults — Purpose: Set all stMachineConfig fields to SDS default values *)
-(* TODO: set stMachineConfig.bSimulationMode := TRUE *)
-(* TODO: set stMachineConfig.nAxisCount := 2 *)
-(* TODO: set axis config defaults per ST_AxisConfig field defaults from SDS *)
-(* TODO: set stMachineConfig.stSafetyConfig to ST_SafetyConfig defaults *)
-(* TODO: set stMachineConfig.stTimingConfig to ST_TimingConfig defaults *)
-(* TODO: set bInitialized := TRUE *)
-END_METHOD
+IF (NOT bInitialized) OR rtrigReload.Q THEN
+    stMachineConfig.bSimulationMode := TRUE;
+    stMachineConfig.nAxisCount := 2;
 
-(* ========== VALIDATION ========== *)
-METHOD ValidateAll : BOOL
-(* Method: ValidateAll — Purpose: Check all parameters, clamp or flag invalid values *)
-(* Returns TRUE if all valid *)
-(* TODO: check fMaxVelocity > 0 for each axis *)
-(* TODO: check fSoftLimitPositive > fSoftLimitNegative for each axis *)
-(* TODO: check all TIME values > T#0S *)
-(* TODO: set bConfigValid := result *)
-END_METHOD
+    FOR nAxis := 1 TO cMAX_AXES DO
+        stMachineConfig.astAxisConfig[nAxis].fMaxVelocity := 500.0;
+        stMachineConfig.astAxisConfig[nAxis].fMaxAcceleration := 2000.0;
+        stMachineConfig.astAxisConfig[nAxis].fMaxDeceleration := 2000.0;
+        stMachineConfig.astAxisConfig[nAxis].fJerkLimit := 10000.0;
+        stMachineConfig.astAxisConfig[nAxis].fSoftLimitPositive := 300.0;
+        stMachineConfig.astAxisConfig[nAxis].fSoftLimitNegative := -10.0;
+        stMachineConfig.astAxisConfig[nAxis].fHomingVelocity := 50.0;
+        stMachineConfig.astAxisConfig[nAxis].fHomingBackoffVelocity := 10.0;
+        stMachineConfig.astAxisConfig[nAxis].bHomingDirectionPositive := FALSE;
+        stMachineConfig.astAxisConfig[nAxis].fHomeOffset := 0.0;
+        stMachineConfig.astAxisConfig[nAxis].fPositionErrorLimit := 2.0;
+        stMachineConfig.astAxisConfig[nAxis].fJogVelocity := 100.0;
+    END_FOR
 
-(* ========== ACCESSORS ========== *)
-METHOD GetAxisConfig : ST_AxisConfig
-VAR_INPUT
-    nAxisIndex : UINT;
-END_VAR
-(* Method: GetAxisConfig — Purpose: Return config for specific axis index *)
-(* TODO: bounds check nAxisIndex against cMAX_AXES, return stMachineConfig.astAxisConfig[nAxisIndex] *)
-END_METHOD
+    stMachineConfig.stSafetyConfig.tEStopDebounceTime := T#100MS;
+    stMachineConfig.stSafetyConfig.tRelayDiscrepancyWindow := T#500MS;
+    stMachineConfig.stSafetyConfig.tLimitDebounceTime := T#50MS;
+    stMachineConfig.stSafetyConfig.tStuckSensorTimeout := T#5S;
+    stMachineConfig.stTimingConfig.tInitTimeout := T#10S;
+    stMachineConfig.stTimingConfig.tHomingTimeout := T#60S;
+    stMachineConfig.stTimingConfig.tHomingStepTimeout := T#15S;
+    stMachineConfig.stTimingConfig.nHomingMaxRetries := 2;
+    stMachineConfig.stTimingConfig.tCommandTimeout := T#5S;
+    stMachineConfig.stTimingConfig.tTestSettleTime := T#500MS;
+    stMachineConfig.stTimingConfig.tTestStepTimeout := T#30S;
+    stMachineConfig.stTraceConfig.nBufferSize := cTRACE_BUFFER_SIZE;
+    stMachineConfig.stTraceConfig.nDisplayCount := cTRACE_DISPLAY_COUNT;
+    stMachineConfig.stTraceConfig.nPendingQueueMax := cTRACE_PENDING_MAX;
+    stMachineConfig.stAlarmConfig.nMaxActiveAlarms := cMAX_ALARMS;
+    stMachineConfig.stAlarmConfig.nMaxAlarmHistory := cMAX_ALARM_HISTORY;
+
+    bInitialized := TRUE;
+    bConfigChanged := TRUE;
+END_IF
+
+bConfigValid := TRUE;
+sValidationError := '';
+
+IF (stMachineConfig.nAxisCount = 0) OR (stMachineConfig.nAxisCount > cMAX_AXES) THEN
+    bConfigValid := FALSE;
+    sValidationError := 'Axis count is outside supported range';
+END_IF
+
+(* Always use the compile-time array bound here. If a corrupt or externally
+   loaded axis count exceeds cMAX_AXES, iterating to that value would access
+   outside astAxisConfig before the invalid configuration could be rejected. *)
+FOR nAxis := 1 TO cMAX_AXES DO
+    IF nAxis <= stMachineConfig.nAxisCount THEN
+        IF stMachineConfig.astAxisConfig[nAxis].fMaxVelocity <= 0.0 THEN
+            bConfigValid := FALSE;
+            sValidationError := 'Maximum velocity must be positive';
+        ELSIF stMachineConfig.astAxisConfig[nAxis].fMaxAcceleration <= 0.0 THEN
+            bConfigValid := FALSE;
+            sValidationError := 'Maximum acceleration must be positive';
+        ELSIF stMachineConfig.astAxisConfig[nAxis].fMaxDeceleration <= 0.0 THEN
+            bConfigValid := FALSE;
+            sValidationError := 'Maximum deceleration must be positive';
+        ELSIF stMachineConfig.astAxisConfig[nAxis].fSoftLimitPositive <=
+                stMachineConfig.astAxisConfig[nAxis].fSoftLimitNegative THEN
+            bConfigValid := FALSE;
+            sValidationError := 'Positive soft limit must exceed negative soft limit';
+        END_IF
+    END_IF
+END_FOR
+
+IF (stMachineConfig.stTimingConfig.tInitTimeout <= T#0MS) OR
+   (stMachineConfig.stTimingConfig.tHomingTimeout <= T#0MS) OR
+   (stMachineConfig.stTimingConfig.tCommandTimeout <= T#0MS) THEN
+    bConfigValid := FALSE;
+    sValidationError := 'Configured timeout must be greater than zero';
+END_IF
+
+bSimulationMode := stMachineConfig.bSimulationMode;
 
 END_FUNCTION_BLOCK

@@ -1,0 +1,50 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <POU Name="FB_HMIModel" Id="{1DF8C794-5B61-D50A-9572-2A505824B4EA}">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_HMIModel
+VAR_INPUT
+    eCurrentMode : E_MachineMode;
+    stModePermits : ST_ModePermits;
+    astAxisStatus : ARRAY[1..2] OF ST_AxisStatus;
+    stSafetyStatus : ST_SafetyStatus;
+    astActiveAlarms : ARRAY[1..32] OF ST_Alarm;
+    nActiveAlarmCount : UINT;
+    eHighestSeverity : E_AlarmSeverity;
+    astRecentEvents : ARRAY[1..20] OF ST_TraceEvent;
+    eHomingState : E_HomingState;
+    bSimulationMode : BOOL;
+    bPLCHeartbeat : BOOL;
+END_VAR
+VAR_OUTPUT
+    stHMIData : ST_HMIData;
+    stHMICommand : ST_HMICommand;
+END_VAR
+VAR
+    tonDataStale : TON;
+    bPreviousHeartbeat : BOOL;
+    bHeartbeatChanged : BOOL;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[bHeartbeatChanged := bPLCHeartbeat <> bPreviousHeartbeat;
+IF bHeartbeatChanged THEN
+    bPreviousHeartbeat := bPLCHeartbeat;
+END_IF
+tonDataStale(IN := NOT bHeartbeatChanged, PT := T#2S);
+
+stHMIData.eCurrentMode := eCurrentMode;
+stHMIData.stModePermits := stModePermits;
+stHMIData.astAxisStatus := astAxisStatus;
+stHMIData.stSafetyStatus := stSafetyStatus;
+stHMIData.astActiveAlarms := astActiveAlarms;
+stHMIData.nActiveAlarmCount := nActiveAlarmCount;
+stHMIData.eHighestSeverity := eHighestSeverity;
+stHMIData.astRecentEvents := astRecentEvents;
+stHMIData.eHomingState := eHomingState;
+stHMIData.bSimulationMode := bSimulationMode;
+stHMIData.bHMIDataStale := tonDataStale.Q;
+stHMIData.nCycleCount := stHMIData.nCycleCount + 1;
+]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>

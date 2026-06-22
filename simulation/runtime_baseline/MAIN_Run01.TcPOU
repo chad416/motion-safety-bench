@@ -1,0 +1,230 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <!-- Exact deterministic runtime baseline used for Scope Run 01. -->
+  <POU Name="MAIN" Id="{2D1CE2E4-0E3B-46C0-8A9B-230554533EF8}">
+    <Declaration><![CDATA[PROGRAM MAIN
+VAR
+    bRunSimulation : BOOL := TRUE;
+    bSimulationRunning : BOOL;
+    bSimulationComplete : BOOL;
+    bSimulationPassed : BOOL;
+    nCurrentTest : UINT := 1;
+    nTestsRun : UINT;
+    nTestsPassed : UINT;
+    nTestsFailed : UINT;
+    anTestResult : ARRAY[1..12] OF UINT;
+
+    nMode : UINT;
+    fActualPosition : LREAL;
+    fTargetPosition : LREAL;
+    fActualVelocity : LREAL;
+    bAxisEnabled : BOOL;
+    bAxisHomed : BOOL;
+    bAxisMoving : BOOL;
+    bEStopHealthy : BOOL := TRUE;
+    bAlarmActive : BOOL;
+    bAlarmAcknowledged : BOOL;
+    nTraceEventCount : UDINT;
+
+    nStep : UINT;
+    nCycle : UDINT;
+    fPositionBefore : LREAL;
+    fDelta : LREAL;
+    fStep : LREAL;
+    bPass : BOOL;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IF bRunSimulation AND NOT bSimulationComplete THEN
+    bSimulationRunning := TRUE;
+    nCycle := nCycle + 1;
+    bPass := FALSE;
+
+    IF bAxisMoving AND bEStopHealthy THEN
+        fDelta := fTargetPosition - fActualPosition;
+        fStep := 2.0;
+        IF ABS(fDelta) <= fStep THEN
+            fActualPosition := fTargetPosition;
+            fActualVelocity := 0.0;
+            bAxisMoving := FALSE;
+            nTraceEventCount := nTraceEventCount + 1;
+        ELSIF fDelta > 0.0 THEN
+            fActualPosition := fActualPosition + fStep;
+            fActualVelocity := 200.0;
+        ELSE
+            fActualPosition := fActualPosition - fStep;
+            fActualVelocity := -200.0;
+        END_IF
+    ELSE
+        fActualVelocity := 0.0;
+    END_IF
+
+    IF NOT bEStopHealthy THEN
+        bAxisMoving := FALSE;
+        bAxisEnabled := FALSE;
+        fActualVelocity := 0.0;
+        nMode := 5;
+        bAlarmActive := TRUE;
+    END_IF
+
+    CASE nCurrentTest OF
+        1:
+            IF nStep = 0 THEN
+                nMode := 1;
+                bAxisEnabled := TRUE;
+                nStep := 1;
+                nCycle := 0;
+            ELSIF nCycle >= 10 THEN
+                bPass := (nMode = 1) AND bAxisEnabled;
+            END_IF
+
+        2:
+            IF nStep = 0 THEN
+                nMode := 2;
+                nStep := 1;
+                nCycle := 0;
+            ELSIF nCycle = 20 THEN
+                fActualPosition := 0.0;
+                bAxisHomed := TRUE;
+                nMode := 3;
+            ELSIF nCycle >= 25 THEN
+                bPass := bAxisHomed AND (nMode = 3);
+            END_IF
+
+        3:
+            IF nStep = 0 THEN
+                fTargetPosition := 100.0;
+                bAxisMoving := TRUE;
+                nStep := 1;
+                nCycle := 0;
+            ELSIF NOT bAxisMoving THEN
+                bPass := ABS(fActualPosition - 100.0) <= 0.01;
+            END_IF
+
+        4:
+            IF nStep = 0 THEN
+                fTargetPosition := fActualPosition + 50.0;
+                bAxisMoving := TRUE;
+                nStep := 1;
+                nCycle := 0;
+            ELSIF NOT bAxisMoving THEN
+                bPass := ABS(fActualPosition - 150.0) <= 0.01;
+            END_IF
+
+        5:
+            IF nStep = 0 THEN
+                fPositionBefore := fActualPosition;
+                nStep := 1;
+                nCycle := 0;
+            ELSIF nCycle <= 50 THEN
+                fActualPosition := fActualPosition + 0.5;
+                fActualVelocity := 50.0;
+            ELSE
+                fActualVelocity := 0.0;
+                bPass := fActualPosition > (fPositionBefore + 20.0);
+            END_IF
+
+        6:
+            IF nStep = 0 THEN
+                fPositionBefore := fActualPosition;
+                fTargetPosition := 999.0;
+                bAlarmActive := TRUE;
+                nStep := 1;
+                nCycle := 0;
+            ELSIF nCycle >= 5 THEN
+                bPass := (fActualPosition = fPositionBefore) AND bAlarmActive;
+                bAlarmActive := FALSE;
+            END_IF
+
+        7:
+            IF nStep = 0 THEN
+                fTargetPosition := 250.0;
+                bAxisEnabled := TRUE;
+                bAxisMoving := TRUE;
+                nMode := 3;
+                nStep := 1;
+                nCycle := 0;
+            ELSIF nCycle = 20 THEN
+                bEStopHealthy := FALSE;
+            ELSIF nCycle >= 22 THEN
+                bPass := (nMode = 5) AND (NOT bAxisMoving) AND bAlarmActive;
+            END_IF
+
+        8:
+            IF nStep = 0 THEN
+                bEStopHealthy := TRUE;
+                bAlarmAcknowledged := TRUE;
+                nMode := 6;
+                nStep := 1;
+                nCycle := 0;
+            ELSIF nCycle = 20 THEN
+                bAlarmActive := FALSE;
+                bAxisEnabled := TRUE;
+                nMode := 1;
+            ELSIF nCycle >= 25 THEN
+                bPass := (nMode = 1) AND (NOT bAlarmActive);
+            END_IF
+
+        9:
+            IF nStep = 0 THEN
+                bAlarmActive := TRUE;
+                bAlarmAcknowledged := FALSE;
+                nStep := 1;
+                nCycle := 0;
+            ELSIF nCycle = 5 THEN
+                bAlarmAcknowledged := TRUE;
+            ELSIF nCycle >= 10 THEN
+                bPass := bAlarmActive AND bAlarmAcknowledged;
+                bAlarmActive := FALSE;
+            END_IF
+
+        10:
+            nTraceEventCount := nTraceEventCount + 1;
+            IF nCycle >= 10 THEN
+                bPass := nTraceEventCount > 0;
+            END_IF
+
+        11:
+            IF nStep = 0 THEN
+                bAxisMoving := FALSE;
+                fActualVelocity := 0.0;
+                nMode := 1;
+                nStep := 1;
+                nCycle := 0;
+            ELSIF nCycle >= 10 THEN
+                bPass := (nMode = 1) AND (NOT bAxisMoving);
+            END_IF
+
+        12:
+            IF nStep = 0 THEN
+                bEStopHealthy := TRUE;
+                bAlarmActive := FALSE;
+                bAxisMoving := FALSE;
+                nMode := 1;
+                nStep := 1;
+                nCycle := 0;
+            ELSIF nCycle >= 10 THEN
+                bPass := (nMode = 1) AND bEStopHealthy AND (NOT bAlarmActive);
+            END_IF
+    END_CASE
+
+    IF bPass THEN
+        anTestResult[nCurrentTest] := 1;
+        nTestsRun := nTestsRun + 1;
+        nTestsPassed := nTestsPassed + 1;
+        IF nCurrentTest = 12 THEN
+            bSimulationComplete := TRUE;
+            bSimulationRunning := FALSE;
+            bSimulationPassed := TRUE;
+            bRunSimulation := FALSE;
+        ELSE
+            nCurrentTest := nCurrentTest + 1;
+            nStep := 0;
+            nCycle := 0;
+        END_IF
+    END_IF
+END_IF
+]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>

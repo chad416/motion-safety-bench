@@ -1,85 +1,135 @@
 FUNCTION_BLOCK FB_ModeManager
 VAR_INPUT
-    stSafetyStatus      : ST_SafetyStatus;
-    bAnyFaultActive     : BOOL;
-    bAllAxesReady       : BOOL;
-    bAllAxesHomed       : BOOL;
-    eRequestedMode      : E_MachineMode;
-    bResetRequested     : BOOL;
+    stSafetyStatus : ST_SafetyStatus;
+    bAnyFaultActive : BOOL;
+    bAllAxesReady : BOOL;
+    bAllAxesHomed : BOOL;
+    bHomingComplete : BOOL;
+    bHomingError : BOOL;
+    eRequestedMode : E_MachineMode;
+    bResetRequested : BOOL;
+    stTimingConfig : ST_TimingConfig;
 END_VAR
-
 VAR_OUTPUT
-    eCurrentMode            : E_MachineMode;
-    ePreviousMode           : E_MachineMode;
-    bModeTransitionActive   : BOOL;
-    stModePermits           : ST_ModePermits;
+    eCurrentMode : E_MachineMode;
+    ePreviousMode : E_MachineMode;
+    bModeTransitionActive : BOOL;
+    stModePermits : ST_ModePermits;
+    nTransitionCounter : UDINT;
 END_VAR
-
 VAR
-    eInternalMode       : E_MachineMode;
-    tonInitTimeout      : TON;
-    tonHomingTimeout    : TON;
-    bTransitionValid    : BOOL;
-    rtrigModeRequest    : R_TRIG;
-    rtrigResetRequest   : R_TRIG;
+    eInternalMode : E_MachineMode := MODE_OFF;
+    tonInitTimeout : TON;
+    tonHomingTimeout : TON;
+    tonResetSettle : TON;
+    rtrigReset : R_TRIG;
+    eLastRequestedMode : E_MachineMode;
+    bRequestChanged : BOOL;
+    eNextMode : E_MachineMode;
 END_VAR
 
-(* ========== CYCLIC PROCESSING ========== *)
-METHOD Cyclic
-(* Method: Cyclic — Purpose: Evaluate state machine, apply safety override, update permits *)
+rtrigReset(CLK := bResetRequested);
+bRequestChanged := eRequestedMode <> eLastRequestedMode;
+IF bRequestChanged THEN
+    eLastRequestedMode := eRequestedMode;
+END_IF
 
-(* ========== SAFETY OVERRIDE (runs before CASE) ========== *)
-(* TODO: IF NOT stSafetyStatus.bSafeToRun AND eInternalMode <> MODE_OFF AND eInternalMode <> MODE_FAULT THEN *)
-(*           ePreviousMode := eInternalMode; eInternalMode := MODE_FAULT; END_IF *)
+eNextMode := eInternalMode;
+bModeTransitionActive := FALSE;
 
-(* ========== STATE MACHINE ========== *)
+(* Safety and critical faults always override operator requests. *)
+IF ((NOT stSafetyStatus.bSafeToRun) OR bAnyFaultActive OR bHomingError) AND
+   (eInternalMode <> MODE_OFF) AND (eInternalMode <> MODE_FAULT) AND
+   (eInternalMode <> MODE_RESET) THEN
+    eNextMode := MODE_FAULT;
+END_IF
+
 CASE eInternalMode OF
     MODE_OFF:
-        (* TODO: if StartCommand received and power healthy, transition to MODE_INIT *)
+        IF stSafetyStatus.bSafeToRun AND (NOT bAnyFaultActive) AND
+           ((eRequestedMode = MODE_INIT) OR (eRequestedMode = MODE_HOMING) OR
+            (eRequestedMode = MODE_MANUAL_JOG) OR (eRequestedMode = MODE_AUTO)) THEN
+            eNextMode := MODE_INIT;
+        END_IF
+
     MODE_INIT:
-        (* TODO: run init timeout timer *)
-        (* TODO: if init complete (axes ready, config valid, safety OK, no faults): stay in INIT awaiting homing request *)
-        (* TODO: if HomingRequest and no faults: transition to MODE_HOMING *)
-        (* TODO: if timeout: transition to MODE_FAULT *)
+        tonInitTimeout(IN := NOT bAllAxesReady, PT := stTimingConfig.tInitTimeout);
+        IF tonInitTimeout.Q THEN
+            eNextMode := MODE_FAULT;
+        ELSIF bAllAxesReady AND (eRequestedMode = MODE_HOMING) THEN
+            eNextMode := MODE_HOMING;
+        ELSIF bAllAxesReady AND bAllAxesHomed AND
+              (eRequestedMode = MODE_MANUAL_JOG) THEN
+            eNextMode := MODE_MANUAL_JOG;
+        END_IF
+
     MODE_HOMING:
-        (* TODO: run homing timeout timer *)
-        (* TODO: if bAllAxesHomed: transition to MODE_MANUAL_JOG *)
-        (* TODO: if timeout or fault: transition to MODE_FAULT *)
+        tonHomingTimeout(IN := NOT bHomingComplete, PT := stTimingConfig.tHomingTimeout);
+        IF bHomingError OR tonHomingTimeout.Q THEN
+            eNextMode := MODE_FAULT;
+        ELSIF bHomingComplete AND bAllAxesHomed THEN
+            eNextMode := MODE_MANUAL_JOG;
+        END_IF
+
     MODE_MANUAL_JOG:
-        (* TODO: if AutoRequest and bAllAxesHomed: transition to MODE_AUTO *)
-        (* TODO: if ReHomeRequest: transition to MODE_HOMING *)
-        (* TODO: if bAnyFaultActive: transition to MODE_FAULT *)
+        IF bRequestChanged AND (eRequestedMode = MODE_HOMING) THEN
+            eNextMode := MODE_HOMING;
+        ELSIF bRequestChanged AND (eRequestedMode = MODE_AUTO) AND bAllAxesHomed THEN
+            eNextMode := MODE_AUTO;
+        ELSIF bRequestChanged AND (eRequestedMode = MODE_OFF) THEN
+            eNextMode := MODE_OFF;
+        END_IF
+
     MODE_AUTO:
-        (* TODO: if ManualRequest: transition to MODE_MANUAL_JOG (after axis stops) *)
-        (* TODO: if bAnyFaultActive: transition to MODE_FAULT *)
+        IF bRequestChanged AND (eRequestedMode = MODE_MANUAL_JOG) THEN
+            eNextMode := MODE_MANUAL_JOG;
+        ELSIF bRequestChanged AND (eRequestedMode = MODE_OFF) THEN
+            eNextMode := MODE_OFF;
+        END_IF
+
     MODE_FAULT:
-        (* TODO: latch — only exit via RESET when operator acknowledges *)
+        IF rtrigReset.Q AND stSafetyStatus.bSafeToRun THEN
+            eNextMode := MODE_RESET;
+        END_IF
+
     MODE_RESET:
-        (* TODO: 2s settle, re-check, transition to MODE_INIT or back to MODE_FAULT *)
+        tonResetSettle(IN := TRUE, PT := T#500MS);
+        IF NOT stSafetyStatus.bSafeToRun THEN
+            eNextMode := MODE_FAULT;
+        ELSIF tonResetSettle.Q AND (NOT bAnyFaultActive) THEN
+            eNextMode := MODE_INIT;
+        END_IF
 END_CASE
 
-(* TODO: eCurrentMode := eInternalMode *)
-(* TODO: call UpdatePermits *)
-END_METHOD
+IF eNextMode <> eInternalMode THEN
+    ePreviousMode := eInternalMode;
+    eInternalMode := eNextMode;
+    bModeTransitionActive := TRUE;
+    nTransitionCounter := nTransitionCounter + 1;
+    tonInitTimeout(IN := FALSE);
+    tonHomingTimeout(IN := FALSE);
+    tonResetSettle(IN := FALSE);
+END_IF
 
-(* ========== TRANSITION VALIDATION ========== *)
-METHOD ValidateTransition : BOOL
-VAR_INPUT
-    eFrom : E_MachineMode;
-    eTo   : E_MachineMode;
-END_VAR
-(* Method: ValidateTransition — Purpose: Return TRUE if transition is valid per state table *)
-(* TODO: CASE eFrom with nested IF on eTo checking all valid transitions from SDS Section 4.1 *)
-END_METHOD
+eCurrentMode := eInternalMode;
 
-(* ========== MODE PERMITS ========== *)
-METHOD UpdatePermits
-(* Method: UpdatePermits — Purpose: Set stModePermits fields based on eCurrentMode *)
-(* TODO: CASE eCurrentMode:
-    MODE_MANUAL_JOG: bAllowMotion:=TRUE, bAllowJog:=TRUE, bAllowHoming:=TRUE, bAllowAutoStart:=TRUE
-    MODE_AUTO: bAllowMotion:=TRUE, bAllowAutoStart:=FALSE (running), bAllowJog:=FALSE
-    MODE_OFF: bAllowConfigEdit:=TRUE, rest FALSE
-    all others: all FALSE except bAllowAlarmReset in FAULT *)
-END_METHOD
+stModePermits.bAllowMotion := stSafetyStatus.bSafeToRun AND
+    (NOT bAnyFaultActive) AND
+    ((eInternalMode = MODE_MANUAL_JOG) OR (eInternalMode = MODE_AUTO));
+stModePermits.bAllowJog := stSafetyStatus.bSafeToRun AND
+    (NOT bAnyFaultActive) AND (eInternalMode = MODE_MANUAL_JOG);
+stModePermits.bAllowHoming := stSafetyStatus.bSafeToRun AND
+    (NOT bAnyFaultActive) AND
+    ((eInternalMode = MODE_INIT) OR
+     (eInternalMode = MODE_HOMING) OR
+     (eInternalMode = MODE_MANUAL_JOG));
+stModePermits.bAllowAutoStart := stSafetyStatus.bSafeToRun AND
+    (NOT bAnyFaultActive) AND bAllAxesHomed AND
+    (eInternalMode = MODE_MANUAL_JOG);
+stModePermits.bAllowModeChange :=
+    (eInternalMode <> MODE_FAULT) AND (eInternalMode <> MODE_RESET);
+stModePermits.bAllowConfigEdit :=
+    (eInternalMode = MODE_OFF) OR (eInternalMode = MODE_INIT);
+stModePermits.bAllowAlarmReset := eInternalMode = MODE_FAULT;
 
 END_FUNCTION_BLOCK

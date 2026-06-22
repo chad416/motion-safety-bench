@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <GVL Name="GVL_Constants" Id="{0FCA83D4-F3A7-36E1-743F-DE423156E581}">
+    <Declaration><![CDATA[VAR_GLOBAL CONSTANT
+    cMAX_AXES : UINT := 2;
+    cMAX_ALARMS : UINT := 32;
+    cMAX_ALARM_HISTORY : UINT := 200;
+    cTRACE_BUFFER_SIZE : UINT := 1000;
+    cTRACE_DISPLAY_COUNT : UINT := 20;
+    cTRACE_PENDING_MAX : UINT := 50;
+    cMAX_TESTS : UINT := 50;
+END_VAR
+]]></Declaration>
+  </GVL>
+</TcPlcObject>

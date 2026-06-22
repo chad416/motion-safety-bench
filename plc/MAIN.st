@@ -1,99 +1,240 @@
-PROGRAM PRG_Main
+PROGRAM MAIN
 VAR
-    fbConfig    : FB_ConfigPackage;
-    fbSafety    : FB_SafetyManager;
-    fbAlarm     : FB_AlarmManager;
-    fbMode      : FB_ModeManager;
-    fbCommand   : FB_CommandParser;
-    fbHoming    : FB_HomingManager;
-    fbAxis      : FB_AxisManager;
-    fbTrace     : FB_TraceLogger;
-    fbHMI       : FB_HMIModel;
-    fbTest      : FB_TestHarness;
+    (* Runtime selection and operator/test controls. *)
+    bRunAutomatedTests : BOOL := FALSE;
+    bRunSingleTest : BOOL;
+    nRequestedTestID : UINT;
+    bReloadDefaults : BOOL;
+    bTraceExport : BOOL;
+    bTraceClear : BOOL;
+
+    (* Portfolio-visible status aliases used by Scope and HMI. *)
+    bSimulationRunning : BOOL;
+    bSimulationComplete : BOOL;
+    bSimulationPassed : BOOL;
+    nCurrentTest : UINT;
+    nTestsRun : UINT;
+    nTestsPassed : UINT;
+    nTestsFailed : UINT;
+    fActualPosition : LREAL;
+    fActualVelocity : LREAL;
+    eCurrentMode : E_MachineMode;
+
+    (* Module instances. *)
+    fbConfig : FB_ConfigPackage;
+    fbSafety : FB_SafetyManager;
+    fbAlarm : FB_AlarmManager;
+    fbMode : FB_ModeManager;
+    fbCommand : FB_CommandParser;
+    fbHoming : FB_HomingManager;
+    fbAxis : FB_AxisManager;
+    fbTrace : FB_TraceLogger;
+    fbHMI : FB_HMIModel;
+    fbTest : FB_TestHarness;
+
+    (* NC references are linked to TwinCAT axes for hardware/NC operation.
+       They remain unused while bSimulationMode is TRUE. *)
+    axis1Ref : AXIS_REF;
+    axis2Ref : AXIS_REF;
+
+    (* Inter-module signals. *)
+    stSelectedHMICommand : ST_HMICommand;
+    abDriveReady : ARRAY[1..2] OF BOOL;
+    abHomeSwitchActive : ARRAY[1..2] OF BOOL;
+    stTraceEvent : ST_TraceEvent;
+    bLogTraceEvent : BOOL;
+    ePreviousModeForTrace : E_MachineMode;
+    nPreviousAlarmCount : UINT;
+    nHeartbeatDivider : UINT;
+    bPLCHeartbeat : BOOL;
 END_VAR
 
-(* ========== CYCLIC CALL ORDER - fixed, do not reorder ========== *)
+(* 1. Configuration is deterministic and validated before use. *)
+fbConfig(bReloadDefaults := bReloadDefaults);
 
-(* Step 1 - Config must run first so all parameters are current *)
-fbConfig.Cyclic();
+(* 2. Select virtual or physical input image and compute safety permits. *)
+abDriveReady[1] := fbAxis.astAxisStatus[1].bEnabled;
+abDriveReady[2] := fbAxis.astAxisStatus[2].bEnabled;
+fbSafety(
+    bSimulationMode := fbConfig.bSimulationMode,
+    stConfig := fbConfig.stMachineConfig.stSafetyConfig,
+    abDriveReady := abDriveReady
+);
 
-(* Step 2 - Safety reads I/O before any motion decision *)
-fbSafety.Cyclic();
-(* TODO: wire config to safety *)
-fbSafety.bSimulationMode := fbConfig.bSimulationMode;
-fbSafety.stConfig := fbConfig.stMachineConfig.stSafetyConfig;
-fbSafety.abDriveReady[1] := fbAxis.astAxisStatus[1].bEnabled;
-fbSafety.abDriveReady[2] := fbAxis.astAxisStatus[2].bEnabled;
+(* 3. Alarm evaluation intentionally uses the previous scan's axis/homing
+      outputs. This gives a deterministic one-scan pipeline without feedback
+      loops between AlarmManager and ModeManager. *)
+fbAlarm(
+    stSafetyStatus := fbSafety.stSafetyStatus,
+    bAnyAxisError := fbAxis.bAnyAxisError,
+    bHomingError := fbHoming.bHomingError,
+    bConfigInvalid := NOT fbConfig.bConfigValid,
+    bCommandRejected := fbAxis.bCommandRejected OR
+        (fbCommand.eLastCommandStatus = CMDSTAT_ERROR),
+    bAckRequested := fbCommand.bAckRequested,
+    nAckAlarmID := fbCommand.nAckAlarmID,
+    bResetAllRequested := fbCommand.bResetAllRequested
+);
 
-(* Step 3 - Evaluate alarm conditions with current safety state *)
-fbAlarm.EvaluateConditions();
-(* TODO: wire safety to alarm *)
-fbAlarm.stSafetyStatus := fbSafety.stSafetyStatus;
-fbAlarm.bAnyAxisError := fbAxis.bAnyAxisError;
-fbAlarm.bHomingError := fbHoming.bHomingError;
+(* 4. Machine mode owns state transitions and all operating permits. *)
+fbMode(
+    stSafetyStatus := fbSafety.stSafetyStatus,
+    bAnyFaultActive := fbAlarm.bAnyFaultActive,
+    bAllAxesReady := fbAxis.bAllAxesReady,
+    bAllAxesHomed := fbHoming.bAllAxesHomed,
+    bHomingComplete := fbHoming.bHomingComplete,
+    bHomingError := fbHoming.bHomingError,
+    eRequestedMode := fbCommand.eRequestedMode,
+    bResetRequested := fbCommand.bResetRequested,
+    stTimingConfig := fbConfig.stMachineConfig.stTimingConfig
+);
 
-(* Step 4 - Determine mode based on safety + alarms *)
-fbMode.Cyclic();
-(* TODO: wire inputs to mode manager *)
-fbMode.stSafetyStatus := fbSafety.stSafetyStatus;
-fbMode.bAnyFaultActive := fbAlarm.bAnyFaultActive;
-fbMode.bAllAxesReady := fbAxis.bAllAxesReady;
-fbMode.bAllAxesHomed := fbHoming.bAllAxesHomed;
-fbMode.eRequestedMode := fbCommand.eRequestedMode;
-fbMode.bResetRequested := fbCommand.bResetRequested;
+(* Automated tests use the same command interface as the HMI. *)
+IF fbTest.bTestSuiteRunning THEN
+    stSelectedHMICommand := fbTest.stHMICommand;
+ELSE
+    stSelectedHMICommand := fbHMI.stHMICommand;
+END_IF
 
-(* Step 5 - Parse and validate operator commands against current mode *)
-fbCommand.Cyclic();
-(* TODO: wire HMI command from test harness or HMI *)
-fbCommand.eCurrentMode := fbMode.eCurrentMode;
-fbCommand.stModePermits := fbMode.stModePermits;
-fbCommand.stSafetyStatus := fbSafety.stSafetyStatus;
-fbCommand.stHMICommand := fbTest.stHMICommand;  (* TestHarness or real HMI *)
+(* 5. Validate and route the selected command. *)
+fbCommand(
+    stHMICommand := stSelectedHMICommand,
+    eCurrentMode := fbMode.eCurrentMode,
+    stModePermits := fbMode.stModePermits,
+    stSafetyStatus := fbSafety.stSafetyStatus
+);
 
-(* Step 6 - Execute homing if in HOMING mode *)
-fbHoming.Cyclic();
-fbHoming.eCurrentMode := fbMode.eCurrentMode;
-fbHoming.bStartHoming := fbCommand.bStartHoming;
-fbHoming.bAbortHoming := fbCommand.bAbortHoming;
-(* TODO: wire home switch signals from virtual or physical I/O *)
-fbHoming.astAxisConfig := fbConfig.stMachineConfig.astAxisConfig;
+(* 6. Homing generates abstract seek/set-position requests. *)
+IF fbConfig.bSimulationMode THEN
+    abHomeSwitchActive := GVL_VirtualIO.stVirtualIO.abHomeSwitch;
+ELSE
+    abHomeSwitchActive[1] := GVL_IO.bPhysHomeSwitch1;
+    abHomeSwitchActive[2] := GVL_IO.bPhysHomeSwitch2;
+END_IF
 
-(* Step 7 - Execute motion commands, safety always wins *)
-fbAxis.Cyclic();
-fbAxis.stModePermits := fbMode.stModePermits;
-fbAxis.eCurrentMode := fbMode.eCurrentMode;
-fbAxis.stCommand := fbCommand.stMotionCommand;
-fbAxis.stSafetyStatus := fbSafety.stSafetyStatus;
-fbAxis.astAxisConfig := fbConfig.stMachineConfig.astAxisConfig;
+fbHoming(
+    eCurrentMode := fbMode.eCurrentMode,
+    bStartHoming := fbCommand.bStartHoming,
+    bAbortHoming := fbCommand.bAbortHoming,
+    abHomeSwitchActive := abHomeSwitchActive,
+    astAxisConfig := fbConfig.stMachineConfig.astAxisConfig,
+    stTimingConfig := fbConfig.stMachineConfig.stTimingConfig
+);
 
-(* Step 8 - Finalize alarm states after all motion evaluated *)
-fbAlarm.UpdateOutputs();
-fbAlarm.bAckRequested := fbCommand.bAckRequested;
-fbAlarm.nAckAlarmID := fbCommand.nAckAlarmID;
-fbAlarm.bResetAllRequested := fbCommand.bResetAllRequested;
+(* 7. AxisManager runs either the deterministic software plant or PLCopen. *)
+fbAxis(
+    bSimulationMode := fbConfig.bSimulationMode,
+    fCycleTimeSeconds := 0.01,
+    stModePermits := fbMode.stModePermits,
+    eCurrentMode := fbMode.eCurrentMode,
+    stCommand := fbCommand.stMotionCommand,
+    stSafetyStatus := fbSafety.stSafetyStatus,
+    astAxisConfig := fbConfig.stMachineConfig.astAxisConfig,
+    abHomeSeekPositive := fbHoming.abSeekPositive,
+    abHomeSeekNegative := fbHoming.abSeekNegative,
+    abSetHomePosition := fbHoming.abSetPosition,
+    afHomePosition := fbHoming.afHomePosition,
+    axis1Ref := axis1Ref,
+    axis2Ref := axis2Ref
+);
 
-(* Step 9 - Log all pending trace events *)
-fbTrace.Cyclic();
+(* 8. Generate a compact event stream for important state changes. *)
+bLogTraceEvent := FALSE;
+IF fbMode.eCurrentMode <> ePreviousModeForTrace THEN
+    stTraceEvent.eSource := TRACE_MODE;
+    stTraceEvent.nEventID := 100;
+    stTraceEvent.sDescription := 'Machine mode changed';
+    stTraceEvent.fValue := TO_LREAL(fbMode.eCurrentMode);
+    ePreviousModeForTrace := fbMode.eCurrentMode;
+    bLogTraceEvent := TRUE;
+ELSIF fbAlarm.nActiveAlarmCount <> nPreviousAlarmCount THEN
+    stTraceEvent.eSource := TRACE_ALARM;
+    stTraceEvent.nEventID := 500;
+    stTraceEvent.sDescription := 'Active alarm count changed';
+    stTraceEvent.fValue := TO_LREAL(fbAlarm.nActiveAlarmCount);
+    nPreviousAlarmCount := fbAlarm.nActiveAlarmCount;
+    bLogTraceEvent := TRUE;
+ELSIF fbAxis.bMotionComplete THEN
+    stTraceEvent.eSource := TRACE_AXIS;
+    stTraceEvent.nEventID := 201;
+    stTraceEvent.sDescription := 'Axis motion completed';
+    stTraceEvent.fValue := fbAxis.astAxisStatus[1].fActualPosition;
+    bLogTraceEvent := TRUE;
+END_IF
 
-(* Step 10 - Aggregate all status into HMI data structure *)
-fbHMI.Cyclic();
-fbHMI.eCurrentMode := fbMode.eCurrentMode;
-fbHMI.stModePermits := fbMode.stModePermits;
-fbHMI.astAxisStatus := fbAxis.astAxisStatus;
-fbHMI.stSafetyStatus := fbSafety.stSafetyStatus;
-fbHMI.astActiveAlarms := fbAlarm.astActiveAlarms;
-fbHMI.nActiveAlarmCount := fbAlarm.nActiveAlarmCount;
-fbHMI.eHighestSeverity := fbAlarm.eHighestSeverity;
-fbHMI.astRecentEvents := fbTrace.astRecentEvents;
-fbHMI.eHomingState := fbHoming.eHomingState;
-fbHMI.bSimulationMode := fbConfig.bSimulationMode;
+fbTrace(
+    bLogEvent := bLogTraceEvent,
+    stEvent := stTraceEvent,
+    bExportTrigger := bTraceExport,
+    bClearBuffer := bTraceClear
+);
 
-(* Step 11 - Test harness runs last, only active in simulation *)
-fbTest.Cyclic();
-fbTest.eCurrentMode := fbMode.eCurrentMode;
-fbTest.astAxisStatus := fbAxis.astAxisStatus;
-fbTest.stSafetyStatus := fbSafety.stSafetyStatus;
-fbTest.nActiveAlarmCount := fbAlarm.nActiveAlarmCount;
-fbTest.bSimulationMode := fbConfig.bSimulationMode;
+(* Heartbeat changes every 500 ms for HMI communication supervision. *)
+nHeartbeatDivider := nHeartbeatDivider + 1;
+IF nHeartbeatDivider >= 50 THEN
+    nHeartbeatDivider := 0;
+    bPLCHeartbeat := NOT bPLCHeartbeat;
+END_IF
+
+(* 9. HMI data is a read-only projection of module outputs. *)
+fbHMI(
+    eCurrentMode := fbMode.eCurrentMode,
+    stModePermits := fbMode.stModePermits,
+    astAxisStatus := fbAxis.astAxisStatus,
+    stSafetyStatus := fbSafety.stSafetyStatus,
+    astActiveAlarms := fbAlarm.astActiveAlarms,
+    nActiveAlarmCount := fbAlarm.nActiveAlarmCount,
+    eHighestSeverity := fbAlarm.eHighestSeverity,
+    astRecentEvents := fbTrace.astRecentEvents,
+    eHomingState := fbHoming.eHomingState,
+    bSimulationMode := fbConfig.bSimulationMode,
+    bPLCHeartbeat := bPLCHeartbeat
+);
+
+(* 10. TestHarness is dormant outside simulation mode. *)
+fbTest(
+    bRunTest := bRunSingleTest,
+    nTestID := nRequestedTestID,
+    bRunAllTests := bRunAutomatedTests,
+    eCurrentMode := fbMode.eCurrentMode,
+    astAxisStatus := fbAxis.astAxisStatus,
+    stSafetyStatus := fbSafety.stSafetyStatus,
+    nActiveAlarmCount := fbAlarm.nActiveAlarmCount,
+    nTraceEventCount := fbTrace.nEventCount,
+    bSimulationMode := fbConfig.bSimulationMode
+);
+
+(* Physical/virtual indication outputs share the same status semantics. *)
+IF fbConfig.bSimulationMode THEN
+    GVL_VirtualIO.stVirtualIO.bReadyLamp :=
+        (fbMode.eCurrentMode = MODE_MANUAL_JOG) OR
+        (fbMode.eCurrentMode = MODE_AUTO);
+    GVL_VirtualIO.stVirtualIO.bFaultLamp := fbMode.eCurrentMode = MODE_FAULT;
+    GVL_VirtualIO.stVirtualIO.bMotionLamp := fbAxis.astAxisStatus[1].bInMotion OR
+        fbAxis.astAxisStatus[2].bInMotion;
+    GVL_VirtualIO.stVirtualIO.bHomedLamp := fbHoming.bAllAxesHomed;
+    GVL_VirtualIO.stVirtualIO.bSafetyRelayCmd := fbSafety.bSafeToRun;
+ELSE
+    GVL_IO.bPhysReadyLamp :=
+        (fbMode.eCurrentMode = MODE_MANUAL_JOG) OR
+        (fbMode.eCurrentMode = MODE_AUTO);
+    GVL_IO.bPhysFaultLamp := fbMode.eCurrentMode = MODE_FAULT;
+    GVL_IO.bPhysMotionLamp := fbAxis.astAxisStatus[1].bInMotion OR
+        fbAxis.astAxisStatus[2].bInMotion;
+    GVL_IO.bPhysHomedLamp := fbHoming.bAllAxesHomed;
+    GVL_IO.bPhysSafetyRelayCmd := fbSafety.bSafeToRun;
+END_IF
+
+(* Stable top-level symbols for Scope, ADS clients, and portfolio demos. *)
+bSimulationRunning := fbTest.bTestSuiteRunning;
+bSimulationComplete := fbTest.bTestSuiteComplete;
+bSimulationPassed := fbTest.bTestSuiteComplete AND (fbTest.nTestsFailed = 0);
+nCurrentTest := fbTest.nCurrentTestID;
+nTestsRun := fbTest.nTestsRun;
+nTestsPassed := fbTest.nTestsPassed;
+nTestsFailed := fbTest.nTestsFailed;
+fActualPosition := fbAxis.astAxisStatus[1].fActualPosition;
+fActualVelocity := fbAxis.astAxisStatus[1].fActualVelocity;
+eCurrentMode := fbMode.eCurrentMode;
 
 END_PROGRAM

@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="ST_SafetyStatus" Id="{E889E37D-0E06-5844-53DD-B57AF12A3DB3}">
+    <Declaration><![CDATA[TYPE ST_SafetyStatus :
+STRUCT
+    bSafeToRun : BOOL;
+    bEStopActive : BOOL;
+    bSafetyRelayOK : BOOL;
+    bRelayDiscrepancy : BOOL;
+    bAnyLimitTripped : BOOL;
+    abLimitPosActive : ARRAY[1..2] OF BOOL;
+    abLimitNegActive : ARRAY[1..2] OF BOOL;
+    nSafetyStatusWord : UINT;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

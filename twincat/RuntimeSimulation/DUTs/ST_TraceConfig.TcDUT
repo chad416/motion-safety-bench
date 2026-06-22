@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="ST_TraceConfig" Id="{09D176AB-6C4A-5DE2-3D96-4004D4C09E34}">
+    <Declaration><![CDATA[TYPE ST_TraceConfig :
+STRUCT
+    nBufferSize : UINT := 1000;
+    nDisplayCount : UINT := 20;
+    nPendingQueueMax : UINT := 50;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>
