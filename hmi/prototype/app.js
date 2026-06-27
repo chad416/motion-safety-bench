@@ -15,6 +15,25 @@ const TESTS = [
   ["TR12", "Cold-start defaults", "Safe defaults restored"]
 ];
 
+TESTS.splice(0, TESTS.length,
+  ["TR01", "Startup and homing", "Safe startup and home reference"],
+  ["TR02", "Absolute move", "Move to 100 mm"],
+  ["TR03", "Relative move", "Advance by 50 mm"],
+  ["TR04", "Jog positive and negative", "Jog both directions and stop"],
+  ["TR05", "Positive limit switch", "Stop, FAULT, recover"],
+  ["TR06", "Negative limit switch", "Stop, FAULT, recover"],
+  ["TR07", "E-stop during motion", "Stop and enter FAULT"],
+  ["TR08", "Guard door during motion", "Inhibit motion and recover"],
+  ["TR09", "Drive fault", "Latch drive fault and recover"],
+  ["TR10", "Following error", "Detect following error"],
+  ["TR11", "Encoder feedback loss", "Detect feedback loss"],
+  ["TR12", "EtherCAT dropout", "Detect network dropout"],
+  ["TR13", "Warm restart", "No stale motion command"],
+  ["TR14", "Cold-start defaults", "Safe defaults restored"],
+  ["TR15", "Watchdog timeout", "Detect watchdog timeout"],
+  ["TR16", "Invalid command transition", "Reject invalid OFF-state move"]
+);
+
 const state = {
   running: false,
   paused: false,
@@ -70,7 +89,7 @@ function setResult(index, value) {
 function completeTest() {
   setResult(state.testIndex, "PASS");
   state.passed += 1;
-  el("testScore").textContent = `${state.passed} / 12`;
+  el("testScore").textContent = `${state.passed} / ${TESTS.length}`;
   addEvent("TEST", `${TESTS[state.testIndex][0]} passed`);
   state.testIndex += 1;
   state.testElapsed = 0;
@@ -78,7 +97,7 @@ function completeTest() {
     state.running = false;
     state.mode = "INIT";
     state.velocity = 0;
-    addEvent("TEST", "All 12 simulation scenarios passed");
+    addEvent("TEST", `All ${TESTS.length} simulation scenarios passed`);
   } else {
     setResult(state.testIndex, "RUNNING");
   }
@@ -110,44 +129,58 @@ function runScenario() {
 
   switch (state.testIndex) {
     case 0:
-      state.mode = "INIT";
-      if (state.testElapsed > 600) completeTest();
-      break;
-    case 1:
-      state.mode = "HOMING";
+      state.mode = state.testElapsed < 400 ? "INIT" : "HOMING";
       state.velocity = -50;
       state.position = Math.max(0, state.position - (50 * deltaSeconds));
-      if (state.position === 0 && state.testElapsed > 700) {
+      if (state.position === 0 && state.testElapsed > 900) {
         state.homed = true;
         state.mode = "MANUAL";
         completeTest();
       }
       break;
-    case 2:
+    case 1:
       state.mode = "MANUAL";
       if (moveToward(100, 200, deltaSeconds)) completeTest();
       break;
-    case 3:
+    case 2:
       if (moveToward(150, 200, deltaSeconds)) completeTest();
       break;
-    case 4:
+    case 3:
       state.target = 200;
-      if (state.testElapsed < 1200) {
+      if (state.testElapsed < 800) {
         state.velocity = 50;
         state.position += 50 * deltaSeconds;
+      } else if (state.testElapsed < 1600) {
+        state.velocity = -50;
+        state.position -= 50 * deltaSeconds;
       } else {
         state.velocity = 0;
         completeTest();
       }
       break;
-    case 5:
-      state.target = 999;
-      state.velocity = 0;
-      state.alarm = true;
-      if (state.testElapsed <= 100) addEvent("ALARM", "Soft-limit command rejected");
-      if (state.testElapsed > 700) {
+    case 4:
+      if (state.testElapsed < 600) moveToward(250, 100, deltaSeconds);
+      else if (state.testElapsed < 1300) {
+        state.mode = "FAULT";
+        state.velocity = 0;
+        state.alarm = true;
+        if (state.testElapsed < 650) addEvent("SAFETY", "Positive limit switch opened");
+      } else {
+        state.mode = "MANUAL";
         state.alarm = false;
-        state.target = state.position;
+        completeTest();
+      }
+      break;
+    case 5:
+      if (state.testElapsed < 600) moveToward(-5, 100, deltaSeconds);
+      else if (state.testElapsed < 1300) {
+        state.mode = "FAULT";
+        state.velocity = 0;
+        state.alarm = true;
+        if (state.testElapsed < 650) addEvent("SAFETY", "Negative limit switch opened");
+      } else {
+        state.mode = "MANUAL";
+        state.alarm = false;
         completeTest();
       }
       break;
@@ -157,33 +190,79 @@ function runScenario() {
       else if (!state.estop && state.testElapsed < 1600) triggerEstop(true);
       else if (state.testElapsed > 1600) {
         triggerEstop(false);
+        state.mode = "MANUAL";
         completeTest();
       }
       break;
     case 7:
-      state.mode = state.testElapsed < 500 ? "RESET" : "INIT";
-      state.alarm = false;
-      if (state.testElapsed > 1000) completeTest();
+      if (state.testElapsed < 600) moveToward(180, 100, deltaSeconds);
+      else if (state.testElapsed < 1300) {
+        state.mode = "FAULT";
+        state.velocity = 0;
+        state.alarm = true;
+        if (state.testElapsed < 650) addEvent("SAFETY", "Guard door opened during motion");
+      } else {
+        state.mode = "MANUAL";
+        state.alarm = false;
+        completeTest();
+      }
       break;
     case 8:
-      state.alarm = state.testElapsed < 500;
-      if (state.testElapsed > 900) completeTest();
+      state.alarm = state.testElapsed < 700;
+      state.mode = state.alarm ? "FAULT" : "MANUAL";
+      state.velocity = 0;
+      if (state.testElapsed <= 100) addEvent("AXIS", "Drive fault injected");
+      if (state.testElapsed > 1000) completeTest();
       break;
     case 9:
-      if (state.testElapsed <= 100) addEvent("TRACE", "Trace buffer verification event");
-      if (state.testElapsed > 600) completeTest();
+      state.alarm = state.testElapsed < 700;
+      state.mode = state.alarm ? "FAULT" : "MANUAL";
+      state.velocity = 0;
+      if (state.testElapsed <= 100) addEvent("AXIS", "Following error exceeded limit");
+      if (state.testElapsed > 1000) completeTest();
       break;
     case 10:
-      state.mode = "INIT";
+      state.alarm = state.testElapsed < 700;
+      state.mode = state.alarm ? "FAULT" : "MANUAL";
+      state.velocity = 0;
+      if (state.testElapsed <= 100) addEvent("AXIS", "Encoder feedback lost");
+      if (state.testElapsed > 1000) completeTest();
+      break;
+    case 11:
+      state.alarm = state.testElapsed < 700;
+      state.mode = state.alarm ? "FAULT" : "MANUAL";
+      state.velocity = 0;
+      if (state.testElapsed <= 100) addEvent("NETWORK", "EtherCAT link dropped");
+      if (state.testElapsed > 1000) completeTest();
+      break;
+    case 12:
+      state.mode = "MANUAL";
       state.velocity = 0;
       if (state.testElapsed > 700) completeTest();
       break;
-    case 11:
+    case 13:
       state.mode = "INIT";
       state.velocity = 0;
       state.alarm = false;
       state.target = state.position;
       if (state.testElapsed > 700) completeTest();
+      break;
+    case 14:
+      state.alarm = state.testElapsed < 700;
+      state.mode = state.alarm ? "FAULT" : "MANUAL";
+      state.velocity = 0;
+      if (state.testElapsed <= 100) addEvent("SYSTEM", "Watchdog timeout injected");
+      if (state.testElapsed > 1000) completeTest();
+      break;
+    case 15:
+      state.mode = "OFF";
+      state.velocity = 0;
+      state.alarm = state.testElapsed < 700;
+      if (state.testElapsed <= 100) addEvent("COMMAND", "Move rejected in OFF state");
+      if (state.testElapsed > 900) {
+        state.alarm = false;
+        completeTest();
+      }
       break;
   }
 }
@@ -278,9 +357,9 @@ el("runButton").addEventListener("click", () => {
     state.lastFrame = Date.now();
     state.passed = 0;
     state.samples = [];
-    el("testScore").textContent = "0 / 12";
+    el("testScore").textContent = `0 / ${TESTS.length}`;
     setResult(0, "RUNNING");
-    addEvent("TEST", "Automated 12-scenario simulation started");
+    addEvent("TEST", `Automated ${TESTS.length}-scenario simulation started`);
   }
 });
 
@@ -293,7 +372,7 @@ el("pauseButton").addEventListener("click", () => {
 el("resetButton").addEventListener("click", () => {
   Object.assign(state, { running: false, paused: false, estop: false, mode: "INIT", position: 0, target: 0, velocity: 0, homed: false, alarm: false, testIndex: -1, testElapsed: 0, lastFrame: Date.now(), passed: 0, samples: [] });
   TESTS.forEach((_, index) => setResult(index, "NOT RUN"));
-  el("testScore").textContent = "0 / 12";
+  el("testScore").textContent = `0 / ${TESTS.length}`;
   addEvent("OPERATOR", "Simulation reset to safe defaults");
 });
 

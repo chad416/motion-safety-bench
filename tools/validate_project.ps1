@@ -46,6 +46,8 @@ try {
         'docs\09_FAT_protocol.md',
         'docs\10_SAT_protocol.md',
         'docs\11_commissioning_logbook.md',
+        'docs\12_commissioning_checklist.md',
+        'docs\13_final_engineering_report.md',
         'hmi\hmi_screen_spec.md',
         'hmi\hmi_tag_map.md',
         'hardware\BOM.md',
@@ -196,18 +198,18 @@ try {
         Assert-True (
             $modularSummary.completed -and
             $modularSummary.passed -and
-            ($modularSummary.testsRun -eq 12) -and
-            ($modularSummary.testsPassed -eq 12) -and
+            ($modularSummary.testsRun -eq 16) -and
+            ($modularSummary.testsPassed -eq $modularSummary.testsRun) -and
             ($modularSummary.testsFailed -eq 0)
         ) `
-            'Modular FAT summary records 12/12 passed and zero failed.' `
-            'Modular FAT summary is not a complete 12/12 pass.'
+            'Modular FAT summary records the complete 16-test passing suite and zero failed.' `
+            'Modular FAT summary is not the accepted 16-test passing suite.'
         Assert-True (
             ($modularSummary.adsState -eq 'Run') -and
             ($modularSummary.targetPort -eq 852) -and
-            ($modularSummary.tests.Count -eq 12)
+            ($modularSummary.tests.Count -eq $modularSummary.testsRun)
         ) `
-            'Modular FAT summary identifies ADS Run on port 852 with 12 test records.' `
+            'Modular FAT summary identifies ADS Run on port 852 with matching test records.' `
             'Modular FAT target state, port or detailed test count is incorrect.'
     }
 
@@ -253,7 +255,7 @@ try {
     }
 
     $requiredHmiText = @(
-        'Run 12-test simulation',
+        'Run 16-test simulation',
         'E-STOP',
         'Safety chain',
         'Position &amp; velocity'

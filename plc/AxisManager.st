@@ -40,7 +40,9 @@ VAR
     rtrigCommand : R_TRIG;
     afSimTarget : ARRAY[1..2] OF LREAL;
     afSimVelocity : ARRAY[1..2] OF LREAL;
+    afSimCommandedPosition : ARRAY[1..2] OF LREAL;
     abSimMoving : ARRAY[1..2] OF BOOL;
+    abSimVelocityMove : ARRAY[1..2] OF BOOL;
     abSimJogPositive : ARRAY[1..2] OF BOOL;
     abSimJogNegative : ARRAY[1..2] OF BOOL;
     abExecuteAbs : ARRAY[1..2] OF BOOL;
@@ -50,6 +52,7 @@ VAR
     fRequestedTarget : LREAL;
     fDelta : LREAL;
     fStep : LREAL;
+    bInjectedAxisFault : BOOL;
     nAxis : UINT;
 END_VAR
 
@@ -70,7 +73,8 @@ IF rtrigCommand.Q THEN
         bCommandRejected := TRUE;
         sCommandRejectReason := 'Axis command contains an invalid axis index';
     ELSIF ((stCommand.eType = CMD_MOVE_ABSOLUTE) OR
-           (stCommand.eType = CMD_MOVE_RELATIVE)) AND
+           (stCommand.eType = CMD_MOVE_RELATIVE) OR
+           (stCommand.eType = CMD_MOVE_VELOCITY)) AND
           ((NOT stModePermits.bAllowMotion) OR (NOT stSafetyStatus.bSafeToRun)) THEN
         bCommandRejected := TRUE;
         sCommandRejectReason := 'Motion command rejected by mode or safety interlock';
@@ -115,8 +119,28 @@ IF rtrigCommand.Q THEN
                     abExecuteRel[stCommand.nAxisIndex] := TRUE;
                 END_IF
 
+            CMD_MOVE_VELOCITY:
+                IF stCommand.fVelocity >
+                   astAxisConfig[stCommand.nAxisIndex].fMaxVelocity THEN
+                    afSimVelocity[stCommand.nAxisIndex] :=
+                        astAxisConfig[stCommand.nAxisIndex].fMaxVelocity;
+                ELSIF stCommand.fVelocity <
+                      -astAxisConfig[stCommand.nAxisIndex].fMaxVelocity THEN
+                    afSimVelocity[stCommand.nAxisIndex] :=
+                        -astAxisConfig[stCommand.nAxisIndex].fMaxVelocity;
+                ELSE
+                    afSimVelocity[stCommand.nAxisIndex] := stCommand.fVelocity;
+                END_IF
+                IF ABS(afSimVelocity[stCommand.nAxisIndex]) <= 0.0 THEN
+                    afSimVelocity[stCommand.nAxisIndex] :=
+                        astAxisConfig[stCommand.nAxisIndex].fMaxVelocity;
+                END_IF
+                abSimMoving[stCommand.nAxisIndex] := FALSE;
+                abSimVelocityMove[stCommand.nAxisIndex] := TRUE;
+
             CMD_STOP:
                 abSimMoving[stCommand.nAxisIndex] := FALSE;
+                abSimVelocityMove[stCommand.nAxisIndex] := FALSE;
                 abSimJogPositive[stCommand.nAxisIndex] := FALSE;
                 abSimJogNegative[stCommand.nAxisIndex] := FALSE;
                 abExecuteStop[stCommand.nAxisIndex] := TRUE;
@@ -130,6 +154,42 @@ IF rtrigCommand.Q THEN
 END_IF
 
 FOR nAxis := 1 TO cMAX_AXES DO
+    IF bSimulationMode THEN
+        astAxisStatus[nAxis].bDriveReady :=
+            GVL_VirtualIO.stVirtualIO.abDriveReady[nAxis];
+        astAxisStatus[nAxis].bDriveFault :=
+            GVL_VirtualIO.stVirtualIO.abDriveFault[nAxis];
+        astAxisStatus[nAxis].bFeedbackHealthy :=
+            GVL_VirtualIO.stVirtualIO.abEncoderHealthy[nAxis];
+        astAxisStatus[nAxis].bNetworkHealthy :=
+            GVL_VirtualIO.stVirtualIO.bEtherCATOK;
+        astAxisStatus[nAxis].bSTOActive :=
+            NOT GVL_VirtualIO.stVirtualIO.bSTOHealthy;
+        astAxisStatus[nAxis].bFollowingErrorActive :=
+            GVL_VirtualIO.stVirtualIO.abFollowingError[nAxis];
+
+        bInjectedAxisFault :=
+            (NOT astAxisStatus[nAxis].bDriveReady) OR
+            astAxisStatus[nAxis].bDriveFault OR
+            (NOT astAxisStatus[nAxis].bFeedbackHealthy) OR
+            astAxisStatus[nAxis].bFollowingErrorActive;
+
+        IF (eCurrentMode = MODE_RESET) AND (NOT bInjectedAxisFault) THEN
+            astAxisStatus[nAxis].bError := FALSE;
+            astAxisStatus[nAxis].nErrorCode := 0;
+        ELSIF bInjectedAxisFault THEN
+            astAxisStatus[nAxis].bError := TRUE;
+            IF astAxisStatus[nAxis].bDriveFault OR
+               (NOT astAxisStatus[nAxis].bDriveReady) THEN
+                astAxisStatus[nAxis].nErrorCode := 16#2001;
+            ELSIF astAxisStatus[nAxis].bFollowingErrorActive THEN
+                astAxisStatus[nAxis].nErrorCode := 16#2002;
+            ELSIF NOT astAxisStatus[nAxis].bFeedbackHealthy THEN
+                astAxisStatus[nAxis].nErrorCode := 16#2003;
+            END_IF
+        END_IF
+    END_IF
+
     abSimJogPositive[nAxis] :=
         stCommand.bJogPositive AND (stCommand.nAxisIndex = nAxis) AND
         stModePermits.bAllowJog AND stSafetyStatus.bSafeToRun;
@@ -145,12 +205,15 @@ FOR nAxis := 1 TO cMAX_AXES DO
 
     IF abSetHomePosition[nAxis] THEN
         astAxisStatus[nAxis].fActualPosition := afHomePosition[nAxis];
+        afSimCommandedPosition[nAxis] := afHomePosition[nAxis];
+        astAxisStatus[nAxis].fCommandedPosition := afHomePosition[nAxis];
         astAxisStatus[nAxis].bHomed := TRUE;
         abSimMoving[nAxis] := FALSE;
     END_IF
 
     IF NOT stSafetyStatus.bSafeToRun THEN
         abSimMoving[nAxis] := FALSE;
+        abSimVelocityMove[nAxis] := FALSE;
         abSimJogPositive[nAxis] := FALSE;
         abSimJogNegative[nAxis] := FALSE;
         astAxisStatus[nAxis].fActualVelocity := 0.0;
@@ -160,7 +223,14 @@ FOR nAxis := 1 TO cMAX_AXES DO
     END_IF
 
     IF bSimulationMode THEN
-        IF abSimMoving[nAxis] AND stSafetyStatus.bSafeToRun THEN
+        IF astAxisStatus[nAxis].bError THEN
+            abSimMoving[nAxis] := FALSE;
+            abSimVelocityMove[nAxis] := FALSE;
+            abSimJogPositive[nAxis] := FALSE;
+            abSimJogNegative[nAxis] := FALSE;
+            astAxisStatus[nAxis].fActualVelocity := 0.0;
+            astAxisStatus[nAxis].eAxisState := AXIS_ERRORSTOP;
+        ELSIF abSimMoving[nAxis] AND stSafetyStatus.bSafeToRun THEN
             fDelta := afSimTarget[nAxis] - astAxisStatus[nAxis].fActualPosition;
             fStep := afSimVelocity[nAxis] * fCycleTimeSeconds;
             IF fStep <= 0.0 THEN
@@ -180,19 +250,44 @@ FOR nAxis := 1 TO cMAX_AXES DO
                     astAxisStatus[nAxis].fActualPosition - fStep;
                 astAxisStatus[nAxis].fActualVelocity := -afSimVelocity[nAxis];
             END_IF
+            afSimCommandedPosition[nAxis] := astAxisStatus[nAxis].fActualPosition;
             astAxisStatus[nAxis].eAxisState := AXIS_DISCRETE_MOTION;
+        ELSIF abSimVelocityMove[nAxis] THEN
+            astAxisStatus[nAxis].fActualVelocity := afSimVelocity[nAxis];
+            astAxisStatus[nAxis].fActualPosition := astAxisStatus[nAxis].fActualPosition +
+                (astAxisStatus[nAxis].fActualVelocity * fCycleTimeSeconds);
+            IF astAxisStatus[nAxis].fActualPosition >=
+               astAxisConfig[nAxis].fSoftLimitPositive THEN
+                astAxisStatus[nAxis].fActualPosition :=
+                    astAxisConfig[nAxis].fSoftLimitPositive;
+                abSimVelocityMove[nAxis] := FALSE;
+                astAxisStatus[nAxis].bError := TRUE;
+                astAxisStatus[nAxis].nErrorCode := 16#2004;
+            ELSIF astAxisStatus[nAxis].fActualPosition <=
+                  astAxisConfig[nAxis].fSoftLimitNegative THEN
+                astAxisStatus[nAxis].fActualPosition :=
+                    astAxisConfig[nAxis].fSoftLimitNegative;
+                abSimVelocityMove[nAxis] := FALSE;
+                astAxisStatus[nAxis].bError := TRUE;
+                astAxisStatus[nAxis].nErrorCode := 16#2004;
+            END_IF
+            afSimCommandedPosition[nAxis] := astAxisStatus[nAxis].fActualPosition;
+            astAxisStatus[nAxis].eAxisState := AXIS_CONTINUOUS_MOTION;
         ELSIF abSimJogPositive[nAxis] THEN
             astAxisStatus[nAxis].fActualVelocity := astAxisConfig[nAxis].fJogVelocity;
             astAxisStatus[nAxis].fActualPosition := astAxisStatus[nAxis].fActualPosition +
                 (astAxisStatus[nAxis].fActualVelocity * fCycleTimeSeconds);
+            afSimCommandedPosition[nAxis] := astAxisStatus[nAxis].fActualPosition;
             astAxisStatus[nAxis].eAxisState := AXIS_CONTINUOUS_MOTION;
         ELSIF abSimJogNegative[nAxis] THEN
             astAxisStatus[nAxis].fActualVelocity := -astAxisConfig[nAxis].fJogVelocity;
             astAxisStatus[nAxis].fActualPosition := astAxisStatus[nAxis].fActualPosition +
                 (astAxisStatus[nAxis].fActualVelocity * fCycleTimeSeconds);
+            afSimCommandedPosition[nAxis] := astAxisStatus[nAxis].fActualPosition;
             astAxisStatus[nAxis].eAxisState := AXIS_CONTINUOUS_MOTION;
         ELSE
             astAxisStatus[nAxis].fActualVelocity := 0.0;
+            afSimCommandedPosition[nAxis] := astAxisStatus[nAxis].fActualPosition;
             IF astAxisStatus[nAxis].bEnabled THEN
                 astAxisStatus[nAxis].eAxisState := AXIS_STANDSTILL;
             ELSE
@@ -201,11 +296,25 @@ FOR nAxis := 1 TO cMAX_AXES DO
         END_IF
 
         astAxisStatus[nAxis].bInMotion := abSimMoving[nAxis] OR
-            abSimJogPositive[nAxis] OR abSimJogNegative[nAxis];
+            abSimVelocityMove[nAxis] OR abSimJogPositive[nAxis] OR
+            abSimJogNegative[nAxis];
+        astAxisStatus[nAxis].fCommandedPosition := afSimCommandedPosition[nAxis];
+        IF astAxisStatus[nAxis].bFollowingErrorActive THEN
+            astAxisStatus[nAxis].fFollowingError :=
+                astAxisConfig[nAxis].fPositionErrorLimit + 1.0;
+        ELSE
+            astAxisStatus[nAxis].fFollowingError :=
+                astAxisStatus[nAxis].fCommandedPosition -
+                astAxisStatus[nAxis].fActualPosition;
+        END_IF
         astAxisStatus[nAxis].bPositiveLimitActive :=
-            astAxisStatus[nAxis].fActualPosition >= astAxisConfig[nAxis].fSoftLimitPositive;
+            (astAxisStatus[nAxis].fActualPosition >=
+                astAxisConfig[nAxis].fSoftLimitPositive) OR
+            (NOT GVL_VirtualIO.stVirtualIO.abLimitPos[nAxis]);
         astAxisStatus[nAxis].bNegativeLimitActive :=
-            astAxisStatus[nAxis].fActualPosition <= astAxisConfig[nAxis].fSoftLimitNegative;
+            (astAxisStatus[nAxis].fActualPosition <=
+                astAxisConfig[nAxis].fSoftLimitNegative) OR
+            (NOT GVL_VirtualIO.stVirtualIO.abLimitNeg[nAxis]);
     END_IF
 END_FOR
 
@@ -245,6 +354,18 @@ IF NOT bSimulationMode THEN
 
     astAxisStatus[1].bEnabled := fbMcPower1.Status;
     astAxisStatus[2].bEnabled := fbMcPower2.Status;
+    astAxisStatus[1].bDriveReady := fbMcPower1.Status;
+    astAxisStatus[2].bDriveReady := fbMcPower2.Status;
+    astAxisStatus[1].bDriveFault := fbMcPower1.Error OR fbMcMoveAbs1.Error OR
+        fbMcMoveRel1.Error OR fbMcStop1.Error OR fbMcReset1.Error;
+    astAxisStatus[2].bDriveFault := fbMcPower2.Error OR fbMcMoveAbs2.Error OR
+        fbMcMoveRel2.Error OR fbMcStop2.Error OR fbMcReset2.Error;
+    astAxisStatus[1].bFeedbackHealthy := TRUE;
+    astAxisStatus[2].bFeedbackHealthy := TRUE;
+    astAxisStatus[1].bNetworkHealthy := stSafetyStatus.bNetworkHealthy;
+    astAxisStatus[2].bNetworkHealthy := stSafetyStatus.bNetworkHealthy;
+    astAxisStatus[1].bSTOActive := stSafetyStatus.bSTOActive;
+    astAxisStatus[2].bSTOActive := stSafetyStatus.bSTOActive;
     astAxisStatus[1].bError := fbMcPower1.Error OR fbMcMoveAbs1.Error OR
         fbMcMoveRel1.Error OR fbMcStop1.Error OR fbMcReset1.Error;
     astAxisStatus[2].bError := fbMcPower2.Error OR fbMcMoveAbs2.Error OR

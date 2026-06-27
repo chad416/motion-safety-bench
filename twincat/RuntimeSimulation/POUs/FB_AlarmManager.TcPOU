@@ -23,10 +23,12 @@ VAR_OUTPUT
 END_VAR
 VAR
     astAlarmBuffer : ARRAY[1..32] OF ST_Alarm;
-    abCondition : ARRAY[1..6] OF BOOL;
-    anAlarmID : ARRAY[1..6] OF UINT := [1001, 1002, 1003, 2001, 3001, 5001];
-    aeSeverity : ARRAY[1..6] OF E_AlarmSeverity :=
-        [SEV_CRITICAL, SEV_CRITICAL, SEV_FAULT, SEV_FAULT, SEV_FAULT, SEV_WARNING];
+    abCondition : ARRAY[1..10] OF BOOL;
+    anAlarmID : ARRAY[1..10] OF UINT :=
+        [1001, 1002, 1003, 1004, 1005, 1006, 1007, 2001, 3001, 5001];
+    aeSeverity : ARRAY[1..10] OF E_AlarmSeverity :=
+        [SEV_CRITICAL, SEV_CRITICAL, SEV_FAULT, SEV_CRITICAL, SEV_CRITICAL,
+         SEV_CRITICAL, SEV_CRITICAL, SEV_FAULT, SEV_FAULT, SEV_WARNING];
     nIndex : UINT;
     nOutputIndex : UINT;
     nHistoryWriteIndex : UINT;
@@ -37,16 +39,20 @@ END_VAR
       <ST><![CDATA[abCondition[1] := stSafetyStatus.bEStopActive;
 abCondition[2] := stSafetyStatus.bRelayDiscrepancy;
 abCondition[3] := stSafetyStatus.bAnyLimitTripped;
-abCondition[4] := bAnyAxisError;
-abCondition[5] := bHomingError;
-abCondition[6] := bConfigInvalid OR bCommandRejected;
+abCondition[4] := stSafetyStatus.bGuardDoorOpen;
+abCondition[5] := stSafetyStatus.bSTOActive OR stSafetyStatus.bDriveInhibit;
+abCondition[6] := NOT stSafetyStatus.bNetworkHealthy;
+abCondition[7] := NOT stSafetyStatus.bWatchdogHealthy;
+abCondition[8] := bAnyAxisError;
+abCondition[9] := bHomingError;
+abCondition[10] := bConfigInvalid OR bCommandRejected;
 
-FOR nIndex := 1 TO 6 DO
+FOR nIndex := 1 TO 10 DO
     astAlarmBuffer[nIndex].nID := anAlarmID[nIndex];
     astAlarmBuffer[nIndex].eSeverity := aeSeverity[nIndex];
     astAlarmBuffer[nIndex].bRequiresAck := aeSeverity[nIndex] >= SEV_FAULT;
     astAlarmBuffer[nIndex].bSelfClearing :=
-        (aeSeverity[nIndex] < SEV_FAULT) AND (nIndex <> 6);
+        (aeSeverity[nIndex] < SEV_FAULT) AND (nIndex <> 10);
 
     CASE nIndex OF
         1:
@@ -59,12 +65,24 @@ FOR nIndex := 1 TO 6 DO
             astAlarmBuffer[nIndex].sMessage := 'Hardware limit switch activated';
             astAlarmBuffer[nIndex].sSource := 'SafetyManager';
         4:
-            astAlarmBuffer[nIndex].sMessage := 'Axis reported an error';
-            astAlarmBuffer[nIndex].sSource := 'AxisManager';
+            astAlarmBuffer[nIndex].sMessage := 'Guard door or safety gate is open';
+            astAlarmBuffer[nIndex].sSource := 'SafetyManager';
         5:
+            astAlarmBuffer[nIndex].sMessage := 'STO active or drive inhibit requested';
+            astAlarmBuffer[nIndex].sSource := 'SafetyManager';
+        6:
+            astAlarmBuffer[nIndex].sMessage := 'EtherCAT or network health lost';
+            astAlarmBuffer[nIndex].sSource := 'SafetyManager';
+        7:
+            astAlarmBuffer[nIndex].sMessage := 'PLC watchdog heartbeat timed out';
+            astAlarmBuffer[nIndex].sSource := 'SafetyManager';
+        8:
+            astAlarmBuffer[nIndex].sMessage := 'Axis reported drive, feedback or following error';
+            astAlarmBuffer[nIndex].sSource := 'AxisManager';
+        9:
             astAlarmBuffer[nIndex].sMessage := 'Homing sequence failed';
             astAlarmBuffer[nIndex].sSource := 'HomingManager';
-        6:
+        10:
             astAlarmBuffer[nIndex].sMessage := 'Configuration or command validation warning';
             astAlarmBuffer[nIndex].sSource := 'CommandParser';
     END_CASE

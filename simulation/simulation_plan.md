@@ -16,7 +16,7 @@ Step-by-step instructions to:
 1. Create a TwinCAT 3 project and import all ST modules
 2. Configure a virtual axis (no hardware required)
 3. Map virtual I/O for simulation
-4. Run all 12 simulation FAT scenarios
+4. Run all 16 simulation FAT scenarios
 5. Capture evidence (screenshots + trace exports)
 6. Commit evidence to the repo
 
@@ -145,9 +145,9 @@ See simulation/virtual_io_map.md for full signal list.
 
 ---
 
-## 5. Running the 12 Simulation FAT Scenarios
+## 5. Running the 16 Simulation FAT Scenarios
 
-For each scenario: set up conditions → observe → screenshot → note result.
+For each scenario: set up conditions, observe, capture evidence and note the result.
 
 ### TR01 — Power-up and Init
 
@@ -246,6 +246,17 @@ For each scenario: set up conditions → observe → screenshot → note result.
 **Evidence:** Screenshot of clean INIT from cold start  
 **Save as:** `simulation/test_runs/TR12_cold_restart.png`
 
+### TR13-TR16 - Expanded Fault And State Tests
+
+The current accepted modular FAT extends the original twelve manual scenarios with four additional automated cases:
+
+| Test | Focus | Expected result |
+|---|---|---|
+| TR13 | Warm restart command-path state | No stale motion command; axis remains standstill |
+| TR14 | Cold defaults | Virtual safe defaults restored |
+| TR15 | Watchdog timeout | Motion inhibited, FAULT observed, reset restores healthy state |
+| TR16 | Invalid OFF-state move | Command rejected and no motion occurs |
+
 ---
 
 ## 6. TwinCAT Scope — Trace Evidence Capture
@@ -289,7 +300,7 @@ All of the following must be true before hardware procurement is authorized:
 
 | Gate | Check |
 |------|-------|
-| SIM-QG1 | PASS — Run 02 JSON records TR01–TR12 as passed; CSV/PNG and workbook are retained |
+| SIM-QG1 | PASS - Run 02 JSON records TR01-TR16 as passed; CSV/PNG and workbook are retained |
 | SIM-QG2 | PASS — TR07 validates the E-stop fault response |
 | SIM-QG3 | PASS — TR08 validates the FAULT→RESET→INIT recovery |
 | SIM-QG4 | PASS — trace behavior is covered by the modular suite and retained baseline |

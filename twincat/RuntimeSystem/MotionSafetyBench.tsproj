@@ -1612,7 +1612,7 @@ External Setpoint Generation:
 		</Motion>
 		<Plc>
 			<Project GUID="{44E41B1F-1282-47A8-9246-D06D26944F39}" Name="MotionSafetyBenchPLC" PrjFilePath="..\RuntimeSimulation\MotionSafetyBenchPLC.plcproj" TmcFilePath="..\RuntimeSimulation\MotionSafetyBenchPLC.tmc" ReloadTmc="true" AmsPort="852" FileArchiveSettings="#x000e" SymbolicMapping="true">
-				<Instance Id="#x08502040" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcPath="..\RuntimeSimulation\MotionSafetyBenchPLC.tmc" TmcHash="{644DE7C0-A812-BA13-2A26-EE886A6C09A1}">
+				<Instance Id="#x08502040" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcPath="..\RuntimeSimulation\MotionSafetyBenchPLC.tmc" TmcHash="{557B2FBA-9AA0-3672-326B-529C4781AF90}">
 					<Name>MotionSafetyBenchPLC Instance</Name>
 					<CLSID ClassFactory="TcPlc30">{08500001-0000-0000-F000-000000000064}</CLSID>
 					<Vars VarGrpType="1">
@@ -1648,6 +1648,46 @@ External Setpoint Generation:
 						</Var>
 						<Var>
 							<Name>GVL_IO.bPhysLimitNeg2</Name>
+							<Type>BIT</Type>
+						</Var>
+						<Var>
+							<Name>GVL_IO.bPhysGuardDoorClosed</Name>
+							<Type>BIT</Type>
+						</Var>
+						<Var>
+							<Name>GVL_IO.bPhysSTOHealthy</Name>
+							<Type>BIT</Type>
+						</Var>
+						<Var>
+							<Name>GVL_IO.bPhysDriveReady1</Name>
+							<Type>BIT</Type>
+						</Var>
+						<Var>
+							<Name>GVL_IO.bPhysDriveReady2</Name>
+							<Type>BIT</Type>
+						</Var>
+						<Var>
+							<Name>GVL_IO.bPhysDriveFault1</Name>
+							<Type>BIT</Type>
+						</Var>
+						<Var>
+							<Name>GVL_IO.bPhysDriveFault2</Name>
+							<Type>BIT</Type>
+						</Var>
+						<Var>
+							<Name>GVL_IO.bPhysEncoderHealthy1</Name>
+							<Type>BIT</Type>
+						</Var>
+						<Var>
+							<Name>GVL_IO.bPhysEncoderHealthy2</Name>
+							<Type>BIT</Type>
+						</Var>
+						<Var>
+							<Name>GVL_IO.bPhysEtherCATOK</Name>
+							<Type>BIT</Type>
+						</Var>
+						<Var>
+							<Name>GVL_IO.bPhysWatchdogOK</Name>
 							<Type>BIT</Type>
 						</Var>
 						<Var>

@@ -18,10 +18,10 @@ Simulation proves behavior before procurement. Hardware validates the design; it
 - PLCopen-compatible motion abstraction with deterministic software-plant mode.
 - E-stop, safety-relay feedback, limit-switch and motion-permit logic.
 - Alarm lifecycle, trace/event buffer and HMI-facing data model.
-- Twelve repeatable simulation FAT scenarios.
+- Sixteen repeatable simulation FAT scenarios in the current source harness.
 - TwinCAT Scope evidence and CSV export.
 - Browser-based HMI prototype using the same public status/command model.
-- URS, FDS, SDS, I/O, network, alarm, cause/effect, FMEA, FAT/SAT and commissioning documents.
+- URS, FDS, SDS, I/O, network, alarm, cause/effect, FMEA, FAT/SAT, commissioning checklist and final report.
 - Portable TwinCAT native project generation from reviewed ST source.
 
 ## Non-scope
@@ -47,7 +47,7 @@ Simulation proves behavior before procurement. Hardware validates the design; it
 | WP2 | Software architecture | SDS, types, interfaces and cyclic order defined |
 | WP3 | PLC implementation | No TODO stubs; portable native TwinCAT objects generated |
 | WP4 | Virtual commissioning | Runtime starts, Scope channels record motion |
-| WP5 | Automated FAT | 12/12 scenarios pass with retained evidence |
+| WP5 | Automated FAT | 16/16 scenarios pass with retained evidence |
 | WP6 | HMI | Operator prototype supports status, motion, tests and E-stop demonstration |
 | WP7 | Engineering records | Alarm, cause/effect, FMEA, FAT/SAT and network documents complete |
 | WP8 | Portfolio package | README, case study and demonstration scripts reviewed |
@@ -58,9 +58,9 @@ Simulation proves behavior before procurement. Hardware validates the design; it
 1. Reviewed ST source and generated TwinCAT native project.
 2. TwinCAT configuration and repeatable build/generation tools.
 3. Verified Scope CSV and derived evidence plots.
-4. Twelve-scenario FAT report.
+4. Sixteen-scenario FAT report and retained evidence.
 5. HMI prototype and tag/screen specification.
-6. Engineering document set under `docs/`.
+6. Engineering document set under `docs/`, including standalone commissioning checklist and final engineering report.
 7. Phase 2 BOM, wiring plan and procurement risk register.
 8. Portfolio case study and demonstration scripts.
 
@@ -86,12 +86,12 @@ Simulation proves behavior before procurement. Hardware validates the design; it
 | 2026-07-08 | Portfolio walkthrough and repository QA complete |
 | 2026-07-15 | Software baseline tagged; Phase 2 hardware gate decision |
 
-## Current gate status — 2026-06-21
+## Current gate status - 2026-06-27
 
 - WP1–WP8 software/portfolio scope: complete and validated.
 - Native PLC and complete runtime system: zero project build errors.
 - Modular runtime: activated and running on ADS port 852.
-- Modular FAT Run 02: 12/12 passed, zero failed.
+- Modular FAT Run 02: 16/16 passed, zero failed.
 - Boot-project autostart: verified through runtime restart.
 - WP9 documentation/readiness: complete; procurement remains held for motor/load sizing and certified safety review.
 - Hardware SAT: not executed because Phase 2 hardware has not been procured.
@@ -105,7 +105,7 @@ Hardware procurement is not authorized until all conditions are true:
 - Soft limits reject invalid commands.
 - Fault reset cannot bypass an unhealthy safety chain.
 - Homing timeout and abort paths are tested.
-- All 12 FAT scenarios pass.
+- All 16 FAT scenarios pass.
 - Scope data and an evidence summary are committed.
 - HMI commands pass through the same command validator used by tests.
 

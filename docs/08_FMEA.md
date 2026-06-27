@@ -19,6 +19,13 @@
 | Generated TwinCAT files drift from source | Wrong application built | Deterministic generator and repository validation | 7 | 3 | 2 | 42 | Regenerate and compare in quality gate |
 | VBS/Hyper-V blocks runtime | No simulation/commissioning | Documented Beckhoff script and diagnostics | 4 | 4 | 1 | 16 | Preflight before scheduled FAT |
 | Hardware sizing inadequate | Overload/poor control | Procurement hold until load data | 7 | 4 | 5 | 140 | Motor/drive sizing calculation before purchase |
+| Guard-door input fails open | Nuisance stop / no motion | SafetyManager guard-door aggregation and alarm 1004 | 7 | 3 | 2 | 42 | Verify guard input polarity during SAT |
+| Guard-door input stuck healthy | Motion may continue with guard open if hardwired safety also fails | Certified safety circuit required in Phase 2; PLC diagnostic only | 10 | 2 | 6 | 120 | Dual-channel safety device and validation |
+| STO request not reflected to PLC | HMI may show stale permissive | STO healthy feedback and alarm 1005 | 9 | 2 | 4 | 72 | SAT trip test and drive inhibit verification |
+| Encoder feedback loss | Position control invalid | Axis feedback healthy bit, alarm 2001, reset-required recovery | 8 | 3 | 2 | 48 | TR11 plus hardware feedback disconnect test |
+| Following error exceeds limit | Servo cannot follow command | Following-error status, alarm 2001, fault/reset sequence | 8 | 3 | 2 | 48 | TR10 plus servo tuning review |
+| EtherCAT/network dropout | Lost I/O or drive communication | Network healthy bit, alarm 1006, motion inhibit | 9 | 3 | 2 | 54 | TR12 plus cable pull SAT |
+| PLC watchdog timeout | Runtime no longer deterministic | Watchdog healthy bit, alarm 1007, motion inhibit | 9 | 2 | 2 | 36 | TR15 plus cycle-time monitoring |
 
 ## Priority actions
 

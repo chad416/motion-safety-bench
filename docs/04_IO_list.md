@@ -66,6 +66,25 @@ To simulate test scenarios during Simulation FAT, the engineer sets these variab
 
 ---
 
+## 4.1 As-Built Additional Virtual Inputs
+
+These symbols were added for the expanded 16-scenario software FAT. They remain symbolic and are selected through `GVL_VirtualIO.stVirtualIO` when `bSimulationMode := TRUE`.
+
+| Test scenario | Variable to set | Fault value | Healthy/default value |
+|---|---|---:|---:|
+| Guard door / safety gate open | `GVL_VirtualIO.stVirtualIO.bGuardDoorClosed` | FALSE | TRUE |
+| STO request / drive inhibit | `GVL_VirtualIO.stVirtualIO.bSTOHealthy` | FALSE | TRUE |
+| Drive not ready | `GVL_VirtualIO.stVirtualIO.abDriveReady[1]` | FALSE | TRUE |
+| Drive fault | `GVL_VirtualIO.stVirtualIO.abDriveFault[1]` | TRUE | FALSE |
+| Encoder feedback loss | `GVL_VirtualIO.stVirtualIO.abEncoderHealthy[1]` | FALSE | TRUE |
+| Following error | `GVL_VirtualIO.stVirtualIO.abFollowingError[1]` | TRUE | FALSE |
+| EtherCAT/network dropout | `GVL_VirtualIO.stVirtualIO.bEtherCATOK` | FALSE | TRUE |
+| Watchdog timeout | `GVL_VirtualIO.stVirtualIO.bWatchdogOK` | FALSE | TRUE |
+
+Future physical mapping is isolated in `plc/GVL_IO.st` and must be verified during SAT before drive enable is allowed.
+
+---
+
 ## 5. I/O State Word Encoding (TraceLogger)
 
 For trace logging efficiency, digital inputs are packed into a WORD:
@@ -107,3 +126,4 @@ For trace logging efficiency, digital inputs are packed into a WORD:
 |-----|------|--------|--------|
 | 1.0 | 2026-06-20 | Project engineering | Initial issue — derived from FDS Section 9 |
 | 1.1 | 2026-06-21 | Project engineering | Corrected fail-safe limit defaults and as-built virtual tag names |
+| 1.2 | 2026-06-27 | Project engineering | Added guard, STO, drive, encoder, network, watchdog and following-error simulation tags |

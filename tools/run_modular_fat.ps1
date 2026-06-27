@@ -8,6 +8,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+$expectedTests = 16
 
 $adsAssembly = Get-ChildItem `
     (Join-Path $env:WINDIR 'Microsoft.NET\assembly\GAC_MSIL\TwinCAT.Ads') `
@@ -125,12 +126,12 @@ try {
     $last = $samples[$samples.Count - 1]
     $passed = $completed -and
         $last.bSimulationPassed -and
-        ($last.nTestsRun -eq 12) -and
-        ($last.nTestsPassed -eq 12) -and
+        ($last.nTestsRun -eq $expectedTests) -and
+        ($last.nTestsPassed -eq $expectedTests) -and
         ($last.nTestsFailed -eq 0)
 
     $testResults = New-Object System.Collections.Generic.List[object]
-    for ($testIndex = 1; $testIndex -le 12; $testIndex++) {
+    for ($testIndex = 1; $testIndex -le $expectedTests; $testIndex++) {
         $testFields = [ordered] @{}
         foreach ($field in @(
             @{ Name = 'nTestID'; Type = [uint16] },

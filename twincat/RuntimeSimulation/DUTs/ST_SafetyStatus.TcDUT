@@ -7,6 +7,12 @@ STRUCT
     bEStopActive : BOOL;
     bSafetyRelayOK : BOOL;
     bRelayDiscrepancy : BOOL;
+    bGuardDoorOpen : BOOL;
+    bSTOActive : BOOL;
+    bDriveInhibit : BOOL;
+    bNetworkHealthy : BOOL;
+    bWatchdogHealthy : BOOL;
+    bDriveReadyHealthy : BOOL;
     bAnyLimitTripped : BOOL;
     abLimitPosActive : ARRAY[1..2] OF BOOL;
     abLimitNegActive : ARRAY[1..2] OF BOOL;

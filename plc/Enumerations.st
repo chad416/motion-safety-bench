@@ -48,11 +48,12 @@ TYPE E_CommandType :
     CMD_JOG_NEGATIVE        := 3,
     CMD_MOVE_ABSOLUTE       := 4,
     CMD_MOVE_RELATIVE       := 5,
-    CMD_STOP                := 6,
-    CMD_RESET               := 7,
-    CMD_HOME                := 8,
-    CMD_ACK_ALARM           := 9,
-    CMD_RESET_ALL_ALARMS    := 10
+    CMD_MOVE_VELOCITY       := 6,
+    CMD_STOP                := 7,
+    CMD_RESET               := 8,
+    CMD_HOME                := 9,
+    CMD_ACK_ALARM           := 10,
+    CMD_RESET_ALL_ALARMS    := 11
 );
 END_TYPE
 

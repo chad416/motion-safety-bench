@@ -12,6 +12,16 @@ VAR_GLOBAL
     bPhysLimitNeg1       AT %IX0.5 : BOOL;
     bPhysLimitPos2       AT %IX0.6 : BOOL;
     bPhysLimitNeg2       AT %IX0.7 : BOOL;
+    bPhysGuardDoorClosed AT %IX1.0 : BOOL;
+    bPhysSTOHealthy      AT %IX1.1 : BOOL;
+    bPhysDriveReady1     AT %IX1.2 : BOOL;
+    bPhysDriveReady2     AT %IX1.3 : BOOL;
+    bPhysDriveFault1     AT %IX1.4 : BOOL;
+    bPhysDriveFault2     AT %IX1.5 : BOOL;
+    bPhysEncoderHealthy1 AT %IX1.6 : BOOL;
+    bPhysEncoderHealthy2 AT %IX1.7 : BOOL;
+    bPhysEtherCATOK      AT %IX2.0 : BOOL;
+    bPhysWatchdogOK      AT %IX2.1 : BOOL;
 
     (* Outputs *)
     bPhysReadyLamp       AT %QX0.0 : BOOL;

@@ -18,7 +18,7 @@ The `plc/` directory is the reviewed source of truth. Each function block has an
 | `AxisManager.st` | Deterministic plant or PLCopen path |
 | `TraceLogger.st` | Bounded event ring buffer |
 | `HMIModel.st` | Read-only operator data projection |
-| `TestHarness.st` | Twelve simulation FAT scenarios |
+| `TestHarness.st` | Sixteen simulation FAT scenarios |
 | `MAIN.st` | Fixed cyclic integration order and stable ADS aliases |
 
 ## Generate the native TwinCAT project

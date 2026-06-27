@@ -20,8 +20,11 @@
 | 2026-06-21 | Compile generated modular PLC | PASS | Native PLC solution and complete runtime solution: 0 project errors |
 | 2026-06-21 | Activate modular runtime system | PASS | Local hardware-free NC/PLC system, ADS port 852 |
 | 2026-06-21 | Download/start modular application | PASS | Forced download, ADS state `Run` |
-| 2026-06-21 | Execute modular FAT Run 02 | PASS | 12 run, 12 passed, 0 failed |
+| 2026-06-21 | Execute initial modular FAT rehearsal | PASS | 12 run, 12 passed, 0 failed; superseded by expanded 2026-06-27 acceptance |
 | 2026-06-21 | Verify boot restart persistence | PASS | Port 852 returned directly to ADS `Run`; counters reset |
+| 2026-06-27 | Rebuild/activate expanded modular runtime | PASS | TwinCAT XAE 4024.75; 0 errors, 0 warnings |
+| 2026-06-27 | Execute expanded modular FAT Run 02 | PASS | ADS port 852: 16 run, 16 passed, 0 failed |
+| 2026-06-27 | Regenerate evidence workbook and checksums | PASS | Workbook, CSV, JSON and plot hashes updated |
 
 ## Configuration baseline
 

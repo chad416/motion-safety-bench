@@ -51,7 +51,7 @@ Discuss the intentional one-scan pipeline between axis/homing faults and AlarmMa
 - Show the raw Scope CSV and evidence workbook.
 - Explain the active-window extraction and formula-driven KPIs.
 - Relate each FAT scenario to a cause/effect requirement.
-- Be clear that Run 01 is the platform-recovery baseline and Run 02 is the independently compiled/downloaded modular FAT: 12/12 passed with boot-autostart verification.
+- Be clear that Run 01 is the platform-recovery baseline and Run 02 is the independently compiled/downloaded modular FAT: 16/16 passed with boot-autostart verification.
 
 ## 7. HMI
 

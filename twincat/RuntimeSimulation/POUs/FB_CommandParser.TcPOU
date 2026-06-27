@@ -68,13 +68,15 @@ IF rtrigExecute.Q THEN
         sLastCommandError := 'Axis index is outside supported range';
     ELSIF ((stHMICommand.eCommandType = CMD_MOVE_ABSOLUTE) OR
            (stHMICommand.eCommandType = CMD_MOVE_RELATIVE) OR
+           (stHMICommand.eCommandType = CMD_MOVE_VELOCITY) OR
            (stHMICommand.eCommandType = CMD_JOG_POSITIVE) OR
            (stHMICommand.eCommandType = CMD_JOG_NEGATIVE)) AND
           (NOT stSafetyStatus.bSafeToRun) THEN
         bCommandAllowed := FALSE;
         sLastCommandError := 'Motion command rejected: safety chain not healthy';
     ELSIF ((stHMICommand.eCommandType = CMD_MOVE_ABSOLUTE) OR
-           (stHMICommand.eCommandType = CMD_MOVE_RELATIVE)) AND
+           (stHMICommand.eCommandType = CMD_MOVE_RELATIVE) OR
+           (stHMICommand.eCommandType = CMD_MOVE_VELOCITY)) AND
           (NOT stModePermits.bAllowMotion) THEN
         bCommandAllowed := FALSE;
         sLastCommandError := 'Move command is not permitted in current mode';
@@ -109,6 +111,11 @@ IF rtrigExecute.Q THEN
                 stMotionCommand.nAxisIndex := stHMICommand.nAxisIndex;
                 stMotionCommand.fDistance := stHMICommand.fValue1;
                 stMotionCommand.fVelocity := stHMICommand.fValue2;
+                stMotionCommand.bExecute := TRUE;
+            CMD_MOVE_VELOCITY:
+                stMotionCommand.eType := CMD_MOVE_VELOCITY;
+                stMotionCommand.nAxisIndex := stHMICommand.nAxisIndex;
+                stMotionCommand.fVelocity := stHMICommand.fValue1;
                 stMotionCommand.bExecute := TRUE;
             CMD_STOP:
                 stMotionCommand.eType := CMD_STOP;

@@ -9,10 +9,11 @@ A software-first TwinCAT 3 portfolio project for virtual commissioning of an ind
 - TwinCAT 3.1 build 4024.75 runtime operational on Windows 11.
 - Generated modular PLC and complete runtime system compile with zero project errors.
 - Modular application downloaded to ADS port 852 with a 10 ms task and autostart boot project.
-- Modular FAT Run 02: **12 tests run, 12 passed, 0 failed**.
+- Modular FAT Run 02: **16 tests run, 16 passed, 0 failed**.
+- Current source harness covers the expanded 16 software FAT scenarios.
 - Runtime-restart check returned port 852 directly to ADS `Run`.
 - Recovery Scope Run 01: **25,445 samples**, position **0–215 mm**, velocity **0–200 mm/s**.
-- Dependency-free HMI prototype verified through a complete 12-test UI run.
+- Dependency-free HMI prototype updated to the 16-scenario software FAT list.
 
 ![Modular FAT motion evidence](simulation/test_runs/MotionSafetyBench_Modular_FAT_Run02.png)
 
@@ -43,7 +44,7 @@ The application supports OFF, INIT, HOMING, MANUAL, AUTO, FAULT and RESET. AxisM
 | `twincat/RuntimeSystem/` | Runnable local XAR/NC simulation system on ADS port 852 |
 | `simulation/` | Virtual I/O/axis setup and retained evidence |
 | `hmi/prototype/` | Animated browser HMI demonstration |
-| `docs/` | URS, FDS, SDS, I/O, FAT/SAT, FMEA and engineering records |
+| `docs/` | URS, FDS, SDS, I/O, FAT/SAT, FMEA, commissioning checklist and final report |
 | `hardware/` | Provisional BOM, risks and wiring plan |
 | `portfolio/` | Case study and demonstration scripts |
 | `tools/` | Generation, evidence and validation automation |
@@ -87,7 +88,7 @@ powershell -ExecutionPolicy Bypass -File .\tools\run_modular_fat.ps1
 node .\tools\serve_hmi.mjs
 ```
 
-Open `http://127.0.0.1:4173` and choose **Run 12-test simulation**.
+Open `http://127.0.0.1:4173` and choose **Run 16-test simulation**.
 
 ### Rebuild evidence workbook
 
@@ -99,7 +100,7 @@ Output: `outputs/motion-safety-bench/MotionSafetyBench_Simulation_Evidence.xlsx`
 
 ## Evidence integrity
 
-Run 01 proves the recovered TwinCAT runtime/ADS/Scope path. Run 02 is the accepted modular-application FAT and includes compile, download, 12/12 execution and boot-restart evidence. Hardware acceptance is governed by `docs/10_SAT_protocol.md`; simulation results are never substituted for hardware evidence.
+Run 01 proves the recovered TwinCAT runtime/ADS/Scope path. Run 02 is the accepted modular-application FAT and includes compile, download, 16/16 execution and boot-restart evidence. Hardware acceptance is governed by `docs/10_SAT_protocol.md`; simulation results are never substituted for hardware evidence.
 
 ## Phase 2
 

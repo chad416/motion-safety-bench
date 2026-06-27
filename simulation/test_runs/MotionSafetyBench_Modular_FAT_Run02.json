@@ -1,44 +1,35 @@
 ﻿{
     "runId":  "MotionSafetyBench_Modular_FAT_Run02",
-    "generatedUtc":  "2026-06-21T17:30:44.1687184Z",
+    "generatedUtc":  "2026-06-27T19:11:20.9102381Z",
     "targetNetId":  "local",
     "targetPort":  852,
     "adsState":  "Run",
     "timeoutSeconds":  180,
-    "elapsedSeconds":  7.106,
-    "sampleCount":  46,
+    "elapsedSeconds":  19.772,
+    "sampleCount":  153,
     "completed":  true,
     "passed":  true,
-    "testsRun":  12,
-    "testsPassed":  12,
+    "testsRun":  16,
+    "testsPassed":  16,
     "testsFailed":  0,
-    "finalTest":  12,
-    "finalMode":  5,
-    "finalPosition":  250,
+    "finalTest":  16,
+    "finalMode":  0,
+    "finalPosition":  142,
     "finalVelocity":  0,
     "evidenceCsv":  "simulation/test_runs/MotionSafetyBench_Modular_FAT_Run02.csv",
     "tests":  [
                   {
                       "testId":  1,
-                      "name":  "TR01 Power-up and Init",
+                      "name":  "TR01 Startup and Homing",
                       "result":  "PASS",
                       "resultCode":  2,
-                      "expected":  "Safe startup reaches MODE_INIT",
-                      "actual":  "Current mode evaluated",
-                      "durationMs":  220
+                      "expected":  "Safe startup reaches MANUAL with both axes homed",
+                      "actual":  "Startup, homing and MANUAL-ready state evaluated",
+                      "durationMs":  1220
                   },
                   {
                       "testId":  2,
-                      "name":  "TR02 Homing Complete",
-                      "result":  "PASS",
-                      "resultCode":  2,
-                      "expected":  "Both axes homed and MANUAL mode entered",
-                      "actual":  "Axis homed flags evaluated",
-                      "durationMs":  1020
-                  },
-                  {
-                      "testId":  3,
-                      "name":  "TR03 Absolute Move",
+                      "name":  "TR02 Absolute Move",
                       "result":  "PASS",
                       "resultCode":  2,
                       "expected":  "Axis 1 reaches 100.0 mm",
@@ -46,8 +37,8 @@
                       "durationMs":  530
                   },
                   {
-                      "testId":  4,
-                      "name":  "TR04 Relative Move",
+                      "testId":  3,
+                      "name":  "TR03 Relative Move",
                       "result":  "PASS",
                       "resultCode":  2,
                       "expected":  "Axis 1 advances by 50.0 mm",
@@ -55,76 +46,121 @@
                       "durationMs":  280
                   },
                   {
-                      "testId":  5,
-                      "name":  "TR05 Manual Jog",
+                      "testId":  4,
+                      "name":  "TR04 Jog Positive and Negative",
                       "result":  "PASS",
                       "resultCode":  2,
-                      "expected":  "Position increases only while jog is held",
-                      "actual":  "Jog displacement and stop evaluated",
-                      "durationMs":  1120
+                      "expected":  "Axis jogs both directions and stops on release",
+                      "actual":  "Bidirectional jog displacement and standstill evaluated",
+                      "durationMs":  1420
+                  },
+                  {
+                      "testId":  5,
+                      "name":  "TR05 Positive Limit Switch",
+                      "result":  "PASS",
+                      "resultCode":  2,
+                      "expected":  "Positive limit stops motion, enters FAULT, recovers",
+                      "actual":  "Positive limit FAULT and recovery evaluated",
+                      "durationMs":  1440
                   },
                   {
                       "testId":  6,
-                      "name":  "TR06 Soft Limit Rejection",
+                      "name":  "TR06 Negative Limit Switch",
                       "result":  "PASS",
                       "resultCode":  2,
-                      "expected":  "Target beyond +300 mm is rejected",
-                      "actual":  "Soft-limit rejection and alarm evaluated",
-                      "durationMs":  220
+                      "expected":  "Negative limit stops motion, enters FAULT, recovers",
+                      "actual":  "Negative limit FAULT and recovery evaluated",
+                      "durationMs":  1440
                   },
                   {
                       "testId":  7,
                       "name":  "TR07 E-stop During Motion",
                       "result":  "PASS",
                       "resultCode":  2,
-                      "expected":  "Motion stops and machine enters FAULT",
-                      "actual":  "Fault mode and stopped axis evaluated",
-                      "durationMs":  320
+                      "expected":  "E-stop stops motion, enters FAULT, recovers",
+                      "actual":  "E-stop FAULT and recovery evaluated",
+                      "durationMs":  1440
                   },
                   {
                       "testId":  8,
-                      "name":  "TR08 Fault Reset Cycle",
+                      "name":  "TR08 Guard Door During Motion",
                       "result":  "PASS",
                       "resultCode":  2,
-                      "expected":  "FAULT resets through RESET to INIT",
-                      "actual":  "Reset recovery evaluated",
-                      "durationMs":  820
+                      "expected":  "Guard door inhibits motion, enters FAULT, recovers",
+                      "actual":  "Guard door FAULT and recovery evaluated",
+                      "durationMs":  1440
                   },
                   {
                       "testId":  9,
-                      "name":  "TR09 Alarm Acknowledgement",
+                      "name":  "TR09 Drive Fault",
                       "result":  "PASS",
                       "resultCode":  2,
-                      "expected":  "Active alarm accepts acknowledgement",
-                      "actual":  "Alarm remained visible after acknowledgement",
-                      "durationMs":  320
+                      "expected":  "Drive fault latches axis error and recovers through RESET",
+                      "actual":  "Drive fault latch and reset evaluated",
+                      "durationMs":  1540
                   },
                   {
                       "testId":  10,
-                      "name":  "TR10 Trace Logging",
+                      "name":  "TR10 Following Error",
                       "result":  "PASS",
                       "resultCode":  2,
-                      "expected":  "Trace event count increases",
-                      "actual":  "Trace counter evaluated",
-                      "durationMs":  120
+                      "expected":  "Following error is detected and recovered",
+                      "actual":  "Following error latch and reset evaluated",
+                      "durationMs":  1540
                   },
                   {
                       "testId":  11,
-                      "name":  "TR11 Warm Restart",
+                      "name":  "TR11 Encoder Feedback Loss",
                       "result":  "PASS",
                       "resultCode":  2,
-                      "expected":  "No stale motion command after restart",
-                      "actual":  "Axis stopped without stale command",
-                      "durationMs":  220
+                      "expected":  "Feedback loss is detected and recovered",
+                      "actual":  "Encoder feedback loss and reset evaluated",
+                      "durationMs":  1540
                   },
                   {
                       "testId":  12,
-                      "name":  "TR12 Cold-start Defaults",
+                      "name":  "TR12 EtherCAT Dropout",
                       "result":  "PASS",
                       "resultCode":  2,
-                      "expected":  "Safe defaults restored",
-                      "actual":  "Virtual safe defaults evaluated",
-                      "durationMs":  220
+                      "expected":  "Network dropout inhibits motion and recovers",
+                      "actual":  "EtherCAT/network dropout and reset evaluated",
+                      "durationMs":  1440
+                  },
+                  {
+                      "testId":  13,
+                      "name":  "TR13 Warm Restart",
+                      "result":  "PASS",
+                      "resultCode":  2,
+                      "expected":  "Stop/restart leaves no stale motion command",
+                      "actual":  "Warm restart/stop left axis standstill",
+                      "durationMs":  320
+                  },
+                  {
+                      "testId":  14,
+                      "name":  "TR14 Cold Restart Defaults",
+                      "result":  "PASS",
+                      "resultCode":  2,
+                      "expected":  "Virtual safe defaults are restored",
+                      "actual":  "Virtual cold-start safe defaults evaluated",
+                      "durationMs":  320
+                  },
+                  {
+                      "testId":  15,
+                      "name":  "TR15 Watchdog Timeout",
+                      "result":  "PASS",
+                      "resultCode":  2,
+                      "expected":  "Watchdog loss enters FAULT and recovers",
+                      "actual":  "Watchdog timeout FAULT and recovery evaluated",
+                      "durationMs":  1340
+                  },
+                  {
+                      "testId":  16,
+                      "name":  "TR16 Invalid Command Transition",
+                      "result":  "PASS",
+                      "resultCode":  2,
+                      "expected":  "Move command in OFF is rejected without motion",
+                      "actual":  "Invalid OFF-state move rejection evaluated",
+                      "durationMs":  620
                   }
               ]
 }

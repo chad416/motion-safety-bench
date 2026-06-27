@@ -32,8 +32,11 @@ VAR
     rtrigRunAll : R_TRIG;
     bRunSuite : BOOL;
     bVerificationPassed : BOOL;
+    bFaultObserved : BOOL;
     fInitialPosition : LREAL;
     fExpectedPosition : LREAL;
+    fPeakPosition : LREAL;
+    fLowPosition : LREAL;
     sTestName : STRING(80);
     sExpected : STRING(120);
     sActual : STRING(120);
@@ -61,7 +64,7 @@ ELSE
         eTestPhase := TEST_SETUP;
         nTestStep := 0;
         nCyclesInPhase := 0;
-    ELSIF rtrigRunTest.Q AND (nTestID >= 1) AND (nTestID <= 12) THEN
+    ELSIF rtrigRunTest.Q AND (nTestID >= 1) AND (nTestID <= 16) THEN
         nCurrentTestID := nTestID;
         bRunSuite := FALSE;
         bTestSuiteRunning := TRUE;
@@ -78,51 +81,82 @@ ELSE
             TEST_SETUP:
                 GVL_VirtualIO.stVirtualIO.bEStop := TRUE;
                 GVL_VirtualIO.stVirtualIO.bSafetyRelayFB := TRUE;
+                GVL_VirtualIO.stVirtualIO.bGuardDoorClosed := TRUE;
+                GVL_VirtualIO.stVirtualIO.bSTOHealthy := TRUE;
+                GVL_VirtualIO.stVirtualIO.bEtherCATOK := TRUE;
+                GVL_VirtualIO.stVirtualIO.bWatchdogOK := TRUE;
                 GVL_VirtualIO.stVirtualIO.abLimitPos[1] := TRUE;
                 GVL_VirtualIO.stVirtualIO.abLimitNeg[1] := TRUE;
+                GVL_VirtualIO.stVirtualIO.abLimitPos[2] := TRUE;
+                GVL_VirtualIO.stVirtualIO.abLimitNeg[2] := TRUE;
+                GVL_VirtualIO.stVirtualIO.abDriveReady[1] := TRUE;
+                GVL_VirtualIO.stVirtualIO.abDriveReady[2] := TRUE;
+                GVL_VirtualIO.stVirtualIO.abDriveFault[1] := FALSE;
+                GVL_VirtualIO.stVirtualIO.abDriveFault[2] := FALSE;
+                GVL_VirtualIO.stVirtualIO.abEncoderHealthy[1] := TRUE;
+                GVL_VirtualIO.stVirtualIO.abEncoderHealthy[2] := TRUE;
+                GVL_VirtualIO.stVirtualIO.abFollowingError[1] := FALSE;
+                GVL_VirtualIO.stVirtualIO.abFollowingError[2] := FALSE;
                 GVL_VirtualIO.stVirtualIO.abHomeSwitch[1] := FALSE;
                 GVL_VirtualIO.stVirtualIO.abHomeSwitch[2] := FALSE;
+
                 fInitialPosition := astAxisStatus[1].fActualPosition;
+                fExpectedPosition := fInitialPosition;
+                fPeakPosition := fInitialPosition;
+                fLowPosition := fInitialPosition;
                 bVerificationPassed := FALSE;
+                bFaultObserved := FALSE;
 
                 CASE nCurrentTestID OF
                     1:
-                        sTestName := 'TR01 Power-up and Init';
-                        sExpected := 'Safe startup reaches MODE_INIT';
+                        sTestName := 'TR01 Startup and Homing';
+                        sExpected := 'Safe startup reaches MANUAL with both axes homed';
                     2:
-                        sTestName := 'TR02 Homing Complete';
-                        sExpected := 'Both axes homed and MANUAL mode entered';
-                    3:
-                        sTestName := 'TR03 Absolute Move';
+                        sTestName := 'TR02 Absolute Move';
                         sExpected := 'Axis 1 reaches 100.0 mm';
-                    4:
-                        sTestName := 'TR04 Relative Move';
+                    3:
+                        sTestName := 'TR03 Relative Move';
                         sExpected := 'Axis 1 advances by 50.0 mm';
                         fExpectedPosition := fInitialPosition + 50.0;
+                    4:
+                        sTestName := 'TR04 Jog Positive and Negative';
+                        sExpected := 'Axis jogs both directions and stops on release';
                     5:
-                        sTestName := 'TR05 Manual Jog';
-                        sExpected := 'Position increases only while jog is held';
+                        sTestName := 'TR05 Positive Limit Switch';
+                        sExpected := 'Positive limit stops motion, enters FAULT, recovers';
                     6:
-                        sTestName := 'TR06 Soft Limit Rejection';
-                        sExpected := 'Target beyond +300 mm is rejected';
+                        sTestName := 'TR06 Negative Limit Switch';
+                        sExpected := 'Negative limit stops motion, enters FAULT, recovers';
                     7:
                         sTestName := 'TR07 E-stop During Motion';
-                        sExpected := 'Motion stops and machine enters FAULT';
+                        sExpected := 'E-stop stops motion, enters FAULT, recovers';
                     8:
-                        sTestName := 'TR08 Fault Reset Cycle';
-                        sExpected := 'FAULT resets through RESET to INIT';
+                        sTestName := 'TR08 Guard Door During Motion';
+                        sExpected := 'Guard door inhibits motion, enters FAULT, recovers';
                     9:
-                        sTestName := 'TR09 Alarm Acknowledgement';
-                        sExpected := 'Active alarm accepts acknowledgement';
+                        sTestName := 'TR09 Drive Fault';
+                        sExpected := 'Drive fault latches axis error and recovers through RESET';
                     10:
-                        sTestName := 'TR10 Trace Logging';
-                        sExpected := 'Trace event count increases';
+                        sTestName := 'TR10 Following Error';
+                        sExpected := 'Following error is detected and recovered';
                     11:
-                        sTestName := 'TR11 Warm Restart';
-                        sExpected := 'No stale motion command after restart';
+                        sTestName := 'TR11 Encoder Feedback Loss';
+                        sExpected := 'Feedback loss is detected and recovered';
                     12:
-                        sTestName := 'TR12 Cold-start Defaults';
-                        sExpected := 'Safe defaults restored';
+                        sTestName := 'TR12 EtherCAT Dropout';
+                        sExpected := 'Network dropout inhibits motion and recovers';
+                    13:
+                        sTestName := 'TR13 Warm Restart';
+                        sExpected := 'Stop/restart leaves no stale motion command';
+                    14:
+                        sTestName := 'TR14 Cold Restart Defaults';
+                        sExpected := 'Virtual safe defaults are restored';
+                    15:
+                        sTestName := 'TR15 Watchdog Timeout';
+                        sExpected := 'Watchdog loss enters FAULT and recovers';
+                    16:
+                        sTestName := 'TR16 Invalid Command Transition';
+                        sExpected := 'Move command in OFF is rejected without motion';
                 END_CASE
 
                 stTestResult.nTestID := nCurrentTestID;
@@ -134,6 +168,13 @@ ELSE
                 nCyclesInPhase := 0;
 
             TEST_EXECUTE:
+                IF astAxisStatus[1].fActualPosition > fPeakPosition THEN
+                    fPeakPosition := astAxisStatus[1].fActualPosition;
+                END_IF
+                IF astAxisStatus[1].fActualPosition < fLowPosition THEN
+                    fLowPosition := astAxisStatus[1].fActualPosition;
+                END_IF
+
                 CASE nCurrentTestID OF
                     1:
                         IF nTestStep = 0 THEN
@@ -141,24 +182,19 @@ ELSE
                             stHMICommand.eTargetMode := MODE_INIT;
                             stHMICommand.bExecute := TRUE;
                             nTestStep := 1;
-                        ELSIF nCyclesInPhase >= 20 THEN
-                            eTestPhase := TEST_VERIFY;
-                        END_IF
-
-                    2:
-                        IF nTestStep = 0 THEN
+                        ELSIF nTestStep = 1 THEN
+                            nTestStep := 2;
+                        ELSIF nTestStep = 2 THEN
                             stHMICommand.eCommandType := CMD_MODE_REQUEST;
                             stHMICommand.eTargetMode := MODE_HOMING;
                             stHMICommand.bExecute := TRUE;
-                            nTestStep := 1;
-                        ELSIF nTestStep = 1 THEN
-                            (* Preserve one complete FALSE scan between edge
-                               commands so CommandParser's R_TRIG can re-arm. *)
-                            nTestStep := 2;
-                        ELSIF nTestStep = 2 THEN
+                            nTestStep := 3;
+                        ELSIF nTestStep = 3 THEN
+                            nTestStep := 4;
+                        ELSIF nTestStep = 4 THEN
                             stHMICommand.eCommandType := CMD_HOME;
                             stHMICommand.bExecute := TRUE;
-                            nTestStep := 3;
+                            nTestStep := 5;
                         ELSIF nCyclesInPhase = 20 THEN
                             GVL_VirtualIO.stVirtualIO.abHomeSwitch[1] := TRUE;
                         ELSIF nCyclesInPhase = 30 THEN
@@ -173,11 +209,11 @@ ELSE
                             GVL_VirtualIO.stVirtualIO.abHomeSwitch[2] := FALSE;
                         ELSIF nCyclesInPhase = 80 THEN
                             GVL_VirtualIO.stVirtualIO.abHomeSwitch[2] := TRUE;
-                        ELSIF nCyclesInPhase >= 100 THEN
+                        ELSIF nCyclesInPhase >= 120 THEN
                             eTestPhase := TEST_VERIFY;
                         END_IF
 
-                    3:
+                    2:
                         IF nTestStep = 0 THEN
                             stHMICommand.eCommandType := CMD_MOVE_ABSOLUTE;
                             stHMICommand.nAxisIndex := 1;
@@ -189,7 +225,7 @@ ELSE
                             eTestPhase := TEST_VERIFY;
                         END_IF
 
-                    4:
+                    3:
                         IF nTestStep = 0 THEN
                             stHMICommand.eCommandType := CMD_MOVE_RELATIVE;
                             stHMICommand.nAxisIndex := 1;
@@ -201,28 +237,20 @@ ELSE
                             eTestPhase := TEST_VERIFY;
                         END_IF
 
-                    5:
-                        stHMICommand.eCommandType := CMD_JOG_POSITIVE;
+                    4:
                         stHMICommand.nAxisIndex := 1;
                         stHMICommand.fValue1 := 50.0;
-                        stHMICommand.bExecute := nCyclesInPhase <= 100;
-                        IF nCyclesInPhase >= 110 THEN
-                            eTestPhase := TEST_VERIFY;
-                        END_IF
-
-                    6:
-                        IF nTestStep = 0 THEN
-                            stHMICommand.eCommandType := CMD_MOVE_ABSOLUTE;
-                            stHMICommand.nAxisIndex := 1;
-                            stHMICommand.fValue1 := 999.0;
-                            stHMICommand.fValue2 := 100.0;
+                        IF nCyclesInPhase <= 50 THEN
+                            stHMICommand.eCommandType := CMD_JOG_POSITIVE;
                             stHMICommand.bExecute := TRUE;
-                            nTestStep := 1;
-                        ELSIF nCyclesInPhase >= 20 THEN
+                        ELSIF (nCyclesInPhase >= 70) AND (nCyclesInPhase <= 120) THEN
+                            stHMICommand.eCommandType := CMD_JOG_NEGATIVE;
+                            stHMICommand.bExecute := TRUE;
+                        ELSIF nCyclesInPhase >= 140 THEN
                             eTestPhase := TEST_VERIFY;
                         END_IF
 
-                    7:
+                    5:
                         IF nTestStep = 0 THEN
                             stHMICommand.eCommandType := CMD_MOVE_ABSOLUTE;
                             stHMICommand.nAxisIndex := 1;
@@ -230,123 +258,447 @@ ELSE
                             stHMICommand.fValue2 := 100.0;
                             stHMICommand.bExecute := TRUE;
                             nTestStep := 1;
-                        ELSIF nCyclesInPhase = 20 THEN
+                        ELSIF (nTestStep = 1) AND (nCyclesInPhase >= 20) THEN
+                            GVL_VirtualIO.stVirtualIO.abLimitPos[1] := FALSE;
+                            IF (eCurrentMode = MODE_FAULT) AND (NOT astAxisStatus[1].bInMotion) THEN
+                                bFaultObserved := TRUE;
+                                GVL_VirtualIO.stVirtualIO.abLimitPos[1] := TRUE;
+                                nTestStep := 2;
+                            END_IF
+                        ELSIF nTestStep = 2 THEN
+                            stHMICommand.eCommandType := CMD_RESET;
+                            stHMICommand.bExecute := TRUE;
+                            nTestStep := 3;
+                        ELSIF nTestStep = 3 THEN
+                            nTestStep := 4;
+                        ELSIF (nTestStep = 4) AND (nCyclesInPhase >= 90) THEN
+                            stHMICommand.eCommandType := CMD_RESET_ALL_ALARMS;
+                            stHMICommand.bExecute := TRUE;
+                            nTestStep := 5;
+                        ELSIF nTestStep = 5 THEN
+                            nTestStep := 6;
+                        ELSIF (nTestStep = 6) AND (nCyclesInPhase >= 140) THEN
+                            stHMICommand.eCommandType := CMD_MODE_REQUEST;
+                            stHMICommand.eTargetMode := MODE_MANUAL_JOG;
+                            stHMICommand.bExecute := TRUE;
+                            nTestStep := 7;
+                        ELSIF (nTestStep = 7) AND (eCurrentMode = MODE_MANUAL_JOG) THEN
+                            eTestPhase := TEST_VERIFY;
+                        END_IF
+
+                    6:
+                        IF nTestStep = 0 THEN
+                            stHMICommand.eCommandType := CMD_MOVE_ABSOLUTE;
+                            stHMICommand.nAxisIndex := 1;
+                            stHMICommand.fValue1 := -5.0;
+                            stHMICommand.fValue2 := 100.0;
+                            stHMICommand.bExecute := TRUE;
+                            nTestStep := 1;
+                        ELSIF (nTestStep = 1) AND (nCyclesInPhase >= 20) THEN
+                            GVL_VirtualIO.stVirtualIO.abLimitNeg[1] := FALSE;
+                            IF (eCurrentMode = MODE_FAULT) AND (NOT astAxisStatus[1].bInMotion) THEN
+                                bFaultObserved := TRUE;
+                                GVL_VirtualIO.stVirtualIO.abLimitNeg[1] := TRUE;
+                                nTestStep := 2;
+                            END_IF
+                        ELSIF nTestStep = 2 THEN
+                            stHMICommand.eCommandType := CMD_RESET;
+                            stHMICommand.bExecute := TRUE;
+                            nTestStep := 3;
+                        ELSIF nTestStep = 3 THEN
+                            nTestStep := 4;
+                        ELSIF (nTestStep = 4) AND (nCyclesInPhase >= 90) THEN
+                            stHMICommand.eCommandType := CMD_RESET_ALL_ALARMS;
+                            stHMICommand.bExecute := TRUE;
+                            nTestStep := 5;
+                        ELSIF nTestStep = 5 THEN
+                            nTestStep := 6;
+                        ELSIF (nTestStep = 6) AND (nCyclesInPhase >= 140) THEN
+                            stHMICommand.eCommandType := CMD_MODE_REQUEST;
+                            stHMICommand.eTargetMode := MODE_MANUAL_JOG;
+                            stHMICommand.bExecute := TRUE;
+                            nTestStep := 7;
+                        ELSIF (nTestStep = 7) AND (eCurrentMode = MODE_MANUAL_JOG) THEN
+                            eTestPhase := TEST_VERIFY;
+                        END_IF
+
+                    7:
+                        IF nTestStep = 0 THEN
+                            stHMICommand.eCommandType := CMD_MOVE_ABSOLUTE;
+                            stHMICommand.nAxisIndex := 1;
+                            stHMICommand.fValue1 := 200.0;
+                            stHMICommand.fValue2 := 100.0;
+                            stHMICommand.bExecute := TRUE;
+                            nTestStep := 1;
+                        ELSIF (nTestStep = 1) AND (nCyclesInPhase >= 20) THEN
                             GVL_VirtualIO.stVirtualIO.bEStop := FALSE;
-                        ELSIF nCyclesInPhase >= 30 THEN
+                            IF (eCurrentMode = MODE_FAULT) AND stSafetyStatus.bEStopActive THEN
+                                bFaultObserved := TRUE;
+                                GVL_VirtualIO.stVirtualIO.bEStop := TRUE;
+                                nTestStep := 2;
+                            END_IF
+                        ELSIF nTestStep = 2 THEN
+                            stHMICommand.eCommandType := CMD_RESET;
+                            stHMICommand.bExecute := TRUE;
+                            nTestStep := 3;
+                        ELSIF nTestStep = 3 THEN
+                            nTestStep := 4;
+                        ELSIF (nTestStep = 4) AND (nCyclesInPhase >= 90) THEN
+                            stHMICommand.eCommandType := CMD_RESET_ALL_ALARMS;
+                            stHMICommand.bExecute := TRUE;
+                            nTestStep := 5;
+                        ELSIF nTestStep = 5 THEN
+                            nTestStep := 6;
+                        ELSIF (nTestStep = 6) AND (nCyclesInPhase >= 140) THEN
+                            stHMICommand.eCommandType := CMD_MODE_REQUEST;
+                            stHMICommand.eTargetMode := MODE_MANUAL_JOG;
+                            stHMICommand.bExecute := TRUE;
+                            nTestStep := 7;
+                        ELSIF (nTestStep = 7) AND (eCurrentMode = MODE_MANUAL_JOG) THEN
                             eTestPhase := TEST_VERIFY;
                         END_IF
 
                     8:
                         IF nTestStep = 0 THEN
-                            GVL_VirtualIO.stVirtualIO.bEStop := TRUE;
-                            stHMICommand.eCommandType := CMD_RESET_ALL_ALARMS;
+                            stHMICommand.eCommandType := CMD_MOVE_ABSOLUTE;
+                            stHMICommand.nAxisIndex := 1;
+                            stHMICommand.fValue1 := 180.0;
+                            stHMICommand.fValue2 := 100.0;
                             stHMICommand.bExecute := TRUE;
                             nTestStep := 1;
-                        ELSIF nTestStep = 1 THEN
-                            (* Reset-all and machine reset are separate edges. *)
-                            nTestStep := 2;
+                        ELSIF (nTestStep = 1) AND (nCyclesInPhase >= 20) THEN
+                            GVL_VirtualIO.stVirtualIO.bGuardDoorClosed := FALSE;
+                            IF (eCurrentMode = MODE_FAULT) AND stSafetyStatus.bGuardDoorOpen THEN
+                                bFaultObserved := TRUE;
+                                GVL_VirtualIO.stVirtualIO.bGuardDoorClosed := TRUE;
+                                nTestStep := 2;
+                            END_IF
                         ELSIF nTestStep = 2 THEN
                             stHMICommand.eCommandType := CMD_RESET;
                             stHMICommand.bExecute := TRUE;
                             nTestStep := 3;
-                        ELSIF nCyclesInPhase >= 80 THEN
+                        ELSIF nTestStep = 3 THEN
+                            nTestStep := 4;
+                        ELSIF (nTestStep = 4) AND (nCyclesInPhase >= 90) THEN
+                            stHMICommand.eCommandType := CMD_RESET_ALL_ALARMS;
+                            stHMICommand.bExecute := TRUE;
+                            nTestStep := 5;
+                        ELSIF nTestStep = 5 THEN
+                            nTestStep := 6;
+                        ELSIF (nTestStep = 6) AND (nCyclesInPhase >= 140) THEN
+                            stHMICommand.eCommandType := CMD_MODE_REQUEST;
+                            stHMICommand.eTargetMode := MODE_MANUAL_JOG;
+                            stHMICommand.bExecute := TRUE;
+                            nTestStep := 7;
+                        ELSIF (nTestStep = 7) AND (eCurrentMode = MODE_MANUAL_JOG) THEN
                             eTestPhase := TEST_VERIFY;
                         END_IF
 
                     9:
                         IF nTestStep = 0 THEN
-                            GVL_VirtualIO.stVirtualIO.bEStop := FALSE;
-                            nTestStep := 1;
-                        ELSIF nTestStep = 1 AND nCyclesInPhase >= 10 THEN
-                            stHMICommand.eCommandType := CMD_ACK_ALARM;
-                            stHMICommand.nAlarmID := 1001;
+                            stHMICommand.eCommandType := CMD_MOVE_ABSOLUTE;
+                            stHMICommand.nAxisIndex := 1;
+                            stHMICommand.fValue1 := 220.0;
+                            stHMICommand.fValue2 := 100.0;
                             stHMICommand.bExecute := TRUE;
-                            nTestStep := 2;
-                        ELSIF nCyclesInPhase >= 30 THEN
+                            nTestStep := 1;
+                        ELSIF (nTestStep = 1) AND (nCyclesInPhase >= 20) THEN
+                            GVL_VirtualIO.stVirtualIO.abDriveFault[1] := TRUE;
+                            IF (eCurrentMode = MODE_FAULT) AND astAxisStatus[1].bError THEN
+                                bFaultObserved := TRUE;
+                                GVL_VirtualIO.stVirtualIO.abDriveFault[1] := FALSE;
+                                nTestStep := 2;
+                            END_IF
+                        ELSIF nTestStep = 2 THEN
+                            stHMICommand.eCommandType := CMD_RESET;
+                            stHMICommand.bExecute := TRUE;
+                            nTestStep := 3;
+                        ELSIF nTestStep = 3 THEN
+                            nTestStep := 4;
+                        ELSIF (nTestStep = 4) AND (nCyclesInPhase >= 100) THEN
+                            stHMICommand.eCommandType := CMD_RESET_ALL_ALARMS;
+                            stHMICommand.bExecute := TRUE;
+                            nTestStep := 5;
+                        ELSIF nTestStep = 5 THEN
+                            nTestStep := 6;
+                        ELSIF (nTestStep = 6) AND (nCyclesInPhase >= 150) THEN
+                            stHMICommand.eCommandType := CMD_MODE_REQUEST;
+                            stHMICommand.eTargetMode := MODE_MANUAL_JOG;
+                            stHMICommand.bExecute := TRUE;
+                            nTestStep := 7;
+                        ELSIF (nTestStep = 7) AND (eCurrentMode = MODE_MANUAL_JOG) THEN
                             eTestPhase := TEST_VERIFY;
                         END_IF
 
                     10:
-                        IF nCyclesInPhase >= 10 THEN
+                        IF nTestStep = 0 THEN
+                            stHMICommand.eCommandType := CMD_MOVE_ABSOLUTE;
+                            stHMICommand.nAxisIndex := 1;
+                            stHMICommand.fValue1 := 160.0;
+                            stHMICommand.fValue2 := 100.0;
+                            stHMICommand.bExecute := TRUE;
+                            nTestStep := 1;
+                        ELSIF (nTestStep = 1) AND (nCyclesInPhase >= 20) THEN
+                            GVL_VirtualIO.stVirtualIO.abFollowingError[1] := TRUE;
+                            IF (eCurrentMode = MODE_FAULT) AND
+                               astAxisStatus[1].bFollowingErrorActive THEN
+                                bFaultObserved := TRUE;
+                                GVL_VirtualIO.stVirtualIO.abFollowingError[1] := FALSE;
+                                nTestStep := 2;
+                            END_IF
+                        ELSIF nTestStep = 2 THEN
+                            stHMICommand.eCommandType := CMD_RESET;
+                            stHMICommand.bExecute := TRUE;
+                            nTestStep := 3;
+                        ELSIF nTestStep = 3 THEN
+                            nTestStep := 4;
+                        ELSIF (nTestStep = 4) AND (nCyclesInPhase >= 100) THEN
+                            stHMICommand.eCommandType := CMD_RESET_ALL_ALARMS;
+                            stHMICommand.bExecute := TRUE;
+                            nTestStep := 5;
+                        ELSIF nTestStep = 5 THEN
+                            nTestStep := 6;
+                        ELSIF (nTestStep = 6) AND (nCyclesInPhase >= 150) THEN
+                            stHMICommand.eCommandType := CMD_MODE_REQUEST;
+                            stHMICommand.eTargetMode := MODE_MANUAL_JOG;
+                            stHMICommand.bExecute := TRUE;
+                            nTestStep := 7;
+                        ELSIF (nTestStep = 7) AND (eCurrentMode = MODE_MANUAL_JOG) THEN
                             eTestPhase := TEST_VERIFY;
                         END_IF
 
                     11:
                         IF nTestStep = 0 THEN
-                            stHMICommand.eCommandType := CMD_STOP;
+                            stHMICommand.eCommandType := CMD_MOVE_ABSOLUTE;
                             stHMICommand.nAxisIndex := 1;
+                            stHMICommand.fValue1 := 140.0;
+                            stHMICommand.fValue2 := 100.0;
                             stHMICommand.bExecute := TRUE;
                             nTestStep := 1;
-                        ELSIF nCyclesInPhase >= 20 THEN
+                        ELSIF (nTestStep = 1) AND (nCyclesInPhase >= 20) THEN
+                            GVL_VirtualIO.stVirtualIO.abEncoderHealthy[1] := FALSE;
+                            IF (eCurrentMode = MODE_FAULT) AND
+                               (NOT astAxisStatus[1].bFeedbackHealthy) THEN
+                                bFaultObserved := TRUE;
+                                GVL_VirtualIO.stVirtualIO.abEncoderHealthy[1] := TRUE;
+                                nTestStep := 2;
+                            END_IF
+                        ELSIF nTestStep = 2 THEN
+                            stHMICommand.eCommandType := CMD_RESET;
+                            stHMICommand.bExecute := TRUE;
+                            nTestStep := 3;
+                        ELSIF nTestStep = 3 THEN
+                            nTestStep := 4;
+                        ELSIF (nTestStep = 4) AND (nCyclesInPhase >= 100) THEN
+                            stHMICommand.eCommandType := CMD_RESET_ALL_ALARMS;
+                            stHMICommand.bExecute := TRUE;
+                            nTestStep := 5;
+                        ELSIF nTestStep = 5 THEN
+                            nTestStep := 6;
+                        ELSIF (nTestStep = 6) AND (nCyclesInPhase >= 150) THEN
+                            stHMICommand.eCommandType := CMD_MODE_REQUEST;
+                            stHMICommand.eTargetMode := MODE_MANUAL_JOG;
+                            stHMICommand.bExecute := TRUE;
+                            nTestStep := 7;
+                        ELSIF (nTestStep = 7) AND (eCurrentMode = MODE_MANUAL_JOG) THEN
                             eTestPhase := TEST_VERIFY;
                         END_IF
 
                     12:
+                        IF nTestStep = 0 THEN
+                            stHMICommand.eCommandType := CMD_MOVE_ABSOLUTE;
+                            stHMICommand.nAxisIndex := 1;
+                            stHMICommand.fValue1 := 120.0;
+                            stHMICommand.fValue2 := 100.0;
+                            stHMICommand.bExecute := TRUE;
+                            nTestStep := 1;
+                        ELSIF (nTestStep = 1) AND (nCyclesInPhase >= 20) THEN
+                            GVL_VirtualIO.stVirtualIO.bEtherCATOK := FALSE;
+                            IF (eCurrentMode = MODE_FAULT) AND
+                               (NOT stSafetyStatus.bNetworkHealthy) THEN
+                                bFaultObserved := TRUE;
+                                GVL_VirtualIO.stVirtualIO.bEtherCATOK := TRUE;
+                                nTestStep := 2;
+                            END_IF
+                        ELSIF nTestStep = 2 THEN
+                            stHMICommand.eCommandType := CMD_RESET;
+                            stHMICommand.bExecute := TRUE;
+                            nTestStep := 3;
+                        ELSIF nTestStep = 3 THEN
+                            nTestStep := 4;
+                        ELSIF (nTestStep = 4) AND (nCyclesInPhase >= 90) THEN
+                            stHMICommand.eCommandType := CMD_RESET_ALL_ALARMS;
+                            stHMICommand.bExecute := TRUE;
+                            nTestStep := 5;
+                        ELSIF nTestStep = 5 THEN
+                            nTestStep := 6;
+                        ELSIF (nTestStep = 6) AND (nCyclesInPhase >= 140) THEN
+                            stHMICommand.eCommandType := CMD_MODE_REQUEST;
+                            stHMICommand.eTargetMode := MODE_MANUAL_JOG;
+                            stHMICommand.bExecute := TRUE;
+                            nTestStep := 7;
+                        ELSIF (nTestStep = 7) AND (eCurrentMode = MODE_MANUAL_JOG) THEN
+                            eTestPhase := TEST_VERIFY;
+                        END_IF
+
+                    13:
+                        IF nTestStep = 0 THEN
+                            stHMICommand.eCommandType := CMD_STOP;
+                            stHMICommand.nAxisIndex := 1;
+                            stHMICommand.bExecute := TRUE;
+                            nTestStep := 1;
+                        ELSIF nCyclesInPhase >= 30 THEN
+                            eTestPhase := TEST_VERIFY;
+                        END_IF
+
+                    14:
                         GVL_VirtualIO.stVirtualIO.bEStop := TRUE;
                         GVL_VirtualIO.stVirtualIO.bSafetyRelayFB := TRUE;
-                        GVL_VirtualIO.stVirtualIO.abLimitPos[1] := TRUE;
-                        GVL_VirtualIO.stVirtualIO.abLimitNeg[1] := TRUE;
-                        IF nCyclesInPhase >= 20 THEN
+                        GVL_VirtualIO.stVirtualIO.bGuardDoorClosed := TRUE;
+                        GVL_VirtualIO.stVirtualIO.bSTOHealthy := TRUE;
+                        GVL_VirtualIO.stVirtualIO.bEtherCATOK := TRUE;
+                        GVL_VirtualIO.stVirtualIO.bWatchdogOK := TRUE;
+                        GVL_VirtualIO.stVirtualIO.abDriveReady[1] := TRUE;
+                        GVL_VirtualIO.stVirtualIO.abDriveFault[1] := FALSE;
+                        GVL_VirtualIO.stVirtualIO.abEncoderHealthy[1] := TRUE;
+                        IF nCyclesInPhase >= 30 THEN
+                            eTestPhase := TEST_VERIFY;
+                        END_IF
+
+                    15:
+                        IF nTestStep = 0 THEN
+                            GVL_VirtualIO.stVirtualIO.bWatchdogOK := FALSE;
+                            IF (eCurrentMode = MODE_FAULT) AND
+                               (NOT stSafetyStatus.bWatchdogHealthy) THEN
+                                bFaultObserved := TRUE;
+                                GVL_VirtualIO.stVirtualIO.bWatchdogOK := TRUE;
+                                nTestStep := 1;
+                            END_IF
+                        ELSIF nTestStep = 1 THEN
+                            stHMICommand.eCommandType := CMD_RESET;
+                            stHMICommand.bExecute := TRUE;
+                            nTestStep := 2;
+                        ELSIF nTestStep = 2 THEN
+                            nTestStep := 3;
+                        ELSIF (nTestStep = 3) AND (nCyclesInPhase >= 80) THEN
+                            stHMICommand.eCommandType := CMD_RESET_ALL_ALARMS;
+                            stHMICommand.bExecute := TRUE;
+                            nTestStep := 4;
+                        ELSIF nTestStep = 4 THEN
+                            nTestStep := 5;
+                        ELSIF (nTestStep = 5) AND (nCyclesInPhase >= 130) THEN
+                            stHMICommand.eCommandType := CMD_MODE_REQUEST;
+                            stHMICommand.eTargetMode := MODE_MANUAL_JOG;
+                            stHMICommand.bExecute := TRUE;
+                            nTestStep := 6;
+                        ELSIF (nTestStep = 6) AND (eCurrentMode = MODE_MANUAL_JOG) THEN
+                            eTestPhase := TEST_VERIFY;
+                        END_IF
+
+                    16:
+                        IF nTestStep = 0 THEN
+                            stHMICommand.eCommandType := CMD_MODE_REQUEST;
+                            stHMICommand.eTargetMode := MODE_OFF;
+                            stHMICommand.bExecute := TRUE;
+                            nTestStep := 1;
+                        ELSIF nTestStep = 1 THEN
+                            nTestStep := 2;
+                        ELSIF (nTestStep = 2) AND (nCyclesInPhase >= 30) THEN
+                            stHMICommand.eCommandType := CMD_MOVE_ABSOLUTE;
+                            stHMICommand.nAxisIndex := 1;
+                            stHMICommand.fValue1 := 50.0;
+                            stHMICommand.fValue2 := 100.0;
+                            stHMICommand.bExecute := TRUE;
+                            nTestStep := 3;
+                        ELSIF nCyclesInPhase >= 60 THEN
                             eTestPhase := TEST_VERIFY;
                         END_IF
                 END_CASE
 
-                IF nCyclesInPhase > 3000 THEN
+                IF nCyclesInPhase > 5000 THEN
                     stTestResult.eResult := TRES_TIMEOUT;
-                    sActual := 'Test step exceeded 30 second timeout';
+                    sActual := 'Test step exceeded 50 second timeout';
                     eTestPhase := TEST_TEARDOWN;
                 END_IF
 
             TEST_VERIFY:
                 CASE nCurrentTestID OF
                     1:
-                        bVerificationPassed := eCurrentMode = MODE_INIT;
-                        sActual := 'Current mode evaluated';
+                        bVerificationPassed := (eCurrentMode = MODE_MANUAL_JOG) AND
+                            astAxisStatus[1].bHomed AND astAxisStatus[2].bHomed;
+                        sActual := 'Startup, homing and MANUAL-ready state evaluated';
                     2:
-                        bVerificationPassed := astAxisStatus[1].bHomed AND
-                            astAxisStatus[2].bHomed;
-                        sActual := 'Axis homed flags evaluated';
-                    3:
                         bVerificationPassed :=
                             ABS(astAxisStatus[1].fActualPosition - 100.0) <= 0.1;
                         sActual := 'Absolute position tolerance evaluated';
-                    4:
+                    3:
                         bVerificationPassed :=
                             ABS(astAxisStatus[1].fActualPosition - fExpectedPosition) <= 0.1;
                         sActual := 'Relative position tolerance evaluated';
-                    5:
-                        bVerificationPassed :=
-                            (astAxisStatus[1].fActualPosition > fInitialPosition) AND
+                    4:
+                        bVerificationPassed := (fPeakPosition > fInitialPosition) AND
+                            (fLowPosition < fPeakPosition) AND
                             (NOT astAxisStatus[1].bInMotion);
-                        sActual := 'Jog displacement and stop evaluated';
+                        sActual := 'Bidirectional jog displacement and standstill evaluated';
+                    5:
+                        bVerificationPassed := bFaultObserved AND
+                            (eCurrentMode = MODE_MANUAL_JOG) AND stSafetyStatus.bSafeToRun;
+                        sActual := 'Positive limit FAULT and recovery evaluated';
                     6:
-                        bVerificationPassed :=
-                            (ABS(astAxisStatus[1].fActualPosition - fInitialPosition) <= 0.1) AND
-                            (nActiveAlarmCount > 0);
-                        sActual := 'Soft-limit rejection and alarm evaluated';
+                        bVerificationPassed := bFaultObserved AND
+                            (eCurrentMode = MODE_MANUAL_JOG) AND stSafetyStatus.bSafeToRun;
+                        sActual := 'Negative limit FAULT and recovery evaluated';
                     7:
-                        bVerificationPassed := (eCurrentMode = MODE_FAULT) AND
-                            (NOT astAxisStatus[1].bInMotion) AND stSafetyStatus.bEStopActive;
-                        sActual := 'Fault mode and stopped axis evaluated';
+                        bVerificationPassed := bFaultObserved AND
+                            (eCurrentMode = MODE_MANUAL_JOG) AND stSafetyStatus.bSafeToRun;
+                        sActual := 'E-stop FAULT and recovery evaluated';
                     8:
-                        bVerificationPassed := (eCurrentMode = MODE_INIT) AND
-                            stSafetyStatus.bSafeToRun;
-                        sActual := 'Reset recovery evaluated';
+                        bVerificationPassed := bFaultObserved AND
+                            (eCurrentMode = MODE_MANUAL_JOG) AND stSafetyStatus.bSafeToRun;
+                        sActual := 'Guard door FAULT and recovery evaluated';
                     9:
-                        bVerificationPassed := nActiveAlarmCount > 0;
-                        sActual := 'Alarm remained visible after acknowledgement';
+                        bVerificationPassed := bFaultObserved AND
+                            (eCurrentMode = MODE_MANUAL_JOG) AND
+                            (NOT astAxisStatus[1].bError);
+                        sActual := 'Drive fault latch and reset evaluated';
                     10:
-                        bVerificationPassed := nTraceEventCount > 0;
-                        sActual := 'Trace counter evaluated';
+                        bVerificationPassed := bFaultObserved AND
+                            (eCurrentMode = MODE_MANUAL_JOG) AND
+                            (NOT astAxisStatus[1].bError);
+                        sActual := 'Following error latch and reset evaluated';
                     11:
-                        bVerificationPassed := NOT astAxisStatus[1].bInMotion;
-                        sActual := 'Axis stopped without stale command';
+                        bVerificationPassed := bFaultObserved AND
+                            (eCurrentMode = MODE_MANUAL_JOG) AND
+                            astAxisStatus[1].bFeedbackHealthy;
+                        sActual := 'Encoder feedback loss and reset evaluated';
                     12:
+                        bVerificationPassed := bFaultObserved AND
+                            (eCurrentMode = MODE_MANUAL_JOG) AND
+                            stSafetyStatus.bNetworkHealthy;
+                        sActual := 'EtherCAT/network dropout and reset evaluated';
+                    13:
+                        bVerificationPassed := NOT astAxisStatus[1].bInMotion;
+                        sActual := 'Warm restart/stop left axis standstill';
+                    14:
                         bVerificationPassed := GVL_VirtualIO.stVirtualIO.bEStop AND
                             GVL_VirtualIO.stVirtualIO.bSafetyRelayFB AND
-                            GVL_VirtualIO.stVirtualIO.abLimitPos[1] AND
-                            GVL_VirtualIO.stVirtualIO.abLimitNeg[1];
-                        sActual := 'Virtual safe defaults evaluated';
+                            GVL_VirtualIO.stVirtualIO.bGuardDoorClosed AND
+                            GVL_VirtualIO.stVirtualIO.bSTOHealthy AND
+                            GVL_VirtualIO.stVirtualIO.bEtherCATOK AND
+                            GVL_VirtualIO.stVirtualIO.bWatchdogOK AND
+                            GVL_VirtualIO.stVirtualIO.abDriveReady[1] AND
+                            (NOT GVL_VirtualIO.stVirtualIO.abDriveFault[1]) AND
+                            GVL_VirtualIO.stVirtualIO.abEncoderHealthy[1];
+                        sActual := 'Virtual cold-start safe defaults evaluated';
+                    15:
+                        bVerificationPassed := bFaultObserved AND
+                            (eCurrentMode = MODE_MANUAL_JOG) AND
+                            stSafetyStatus.bWatchdogHealthy;
+                        sActual := 'Watchdog timeout FAULT and recovery evaluated';
+                    16:
+                        bVerificationPassed := (NOT astAxisStatus[1].bInMotion) AND
+                            (nActiveAlarmCount > 0);
+                        sActual := 'Invalid OFF-state move rejection evaluated';
                 END_CASE
 
                 IF bVerificationPassed THEN
@@ -369,9 +721,19 @@ ELSE
 
                 GVL_VirtualIO.stVirtualIO.bEStop := TRUE;
                 GVL_VirtualIO.stVirtualIO.bSafetyRelayFB := TRUE;
+                GVL_VirtualIO.stVirtualIO.bGuardDoorClosed := TRUE;
+                GVL_VirtualIO.stVirtualIO.bSTOHealthy := TRUE;
+                GVL_VirtualIO.stVirtualIO.bEtherCATOK := TRUE;
+                GVL_VirtualIO.stVirtualIO.bWatchdogOK := TRUE;
+                GVL_VirtualIO.stVirtualIO.abLimitPos[1] := TRUE;
+                GVL_VirtualIO.stVirtualIO.abLimitNeg[1] := TRUE;
+                GVL_VirtualIO.stVirtualIO.abDriveReady[1] := TRUE;
+                GVL_VirtualIO.stVirtualIO.abDriveFault[1] := FALSE;
+                GVL_VirtualIO.stVirtualIO.abEncoderHealthy[1] := TRUE;
+                GVL_VirtualIO.stVirtualIO.abFollowingError[1] := FALSE;
                 stHMICommand.bExecute := FALSE;
 
-                IF bRunSuite AND (nCurrentTestID < 12) THEN
+                IF bRunSuite AND (nCurrentTestID < 16) THEN
                     nCurrentTestID := nCurrentTestID + 1;
                     eTestPhase := TEST_SETUP;
                     nTestStep := 0;

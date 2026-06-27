@@ -5,11 +5,19 @@
 STRUCT
     fActualPosition : LREAL;
     fActualVelocity : LREAL;
+    fCommandedPosition : LREAL;
+    fFollowingError : LREAL;
     fActualTorque : LREAL;
     eAxisState : E_AxisState;
     bEnabled : BOOL;
     bHomed : BOOL;
     bInMotion : BOOL;
+    bDriveReady : BOOL;
+    bDriveFault : BOOL;
+    bFeedbackHealthy : BOOL := TRUE;
+    bNetworkHealthy : BOOL := TRUE;
+    bSTOActive : BOOL;
+    bFollowingErrorActive : BOOL;
     bError : BOOL;
     nErrorCode : UDINT;
     bPositiveLimitActive : BOOL;

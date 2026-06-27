@@ -47,14 +47,21 @@ VAR
     nPreviousAlarmCount : UINT;
     nHeartbeatDivider : UINT;
     bPLCHeartbeat : BOOL;
+    nAxis : UINT;
 END_VAR
 
 (* 1. Configuration is deterministic and validated before use. *)
 fbConfig(bReloadDefaults := bReloadDefaults);
 
 (* 2. Select virtual or physical input image and compute safety permits. *)
-abDriveReady[1] := fbAxis.astAxisStatus[1].bEnabled;
-abDriveReady[2] := fbAxis.astAxisStatus[2].bEnabled;
+IF fbConfig.bSimulationMode THEN
+    FOR nAxis := 1 TO cMAX_AXES DO
+        abDriveReady[nAxis] := GVL_VirtualIO.stVirtualIO.abDriveReady[nAxis];
+    END_FOR
+ELSE
+    abDriveReady[1] := GVL_IO.bPhysDriveReady1;
+    abDriveReady[2] := GVL_IO.bPhysDriveReady2;
+END_IF
 fbSafety(
     bSimulationMode := fbConfig.bSimulationMode,
     stConfig := fbConfig.stMachineConfig.stSafetyConfig,

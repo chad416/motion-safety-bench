@@ -2,9 +2,9 @@
 
 ## Executive summary
 
-This project demonstrates a software-first approach to an industrial servo bench using TwinCAT 3 and IEC 61131-3 Structured Text. The system models one primary linear axis with a second-axis-ready architecture, seven machine modes, safety-oriented interlocks, alarms, homing, command validation, trace logging, HMI data aggregation and twelve repeatable FAT scenarios.
+This project demonstrates a software-first approach to an industrial servo bench using TwinCAT 3 and IEC 61131-3 Structured Text. The system models one primary linear axis with a second-axis-ready architecture, seven machine modes, safety-oriented interlocks, alarms, homing, command validation, trace logging, HMI data aggregation and sixteen repeatable FAT scenarios.
 
-The software was commissioned on a Windows 11 laptop before hardware selection. A deterministic plant model generated real position/velocity signals in a 10 ms PLC task. The generated modular application compiled, downloaded to ADS port 852, passed all twelve FAT scenarios, and autostarted after a TwinCAT runtime restart. The earlier recovery baseline remains separately traceable with 25,445 TwinCAT Scope samples.
+The software was commissioned on a Windows 11 laptop before hardware selection. A deterministic plant model generated real position/velocity signals in a 10 ms PLC task. The generated modular application compiled, downloaded to ADS port 852, passed all sixteen FAT scenarios, and autostarted after a TwinCAT runtime restart. The earlier recovery baseline remains separately traceable with 25,445 TwinCAT Scope samples.
 
 ## Engineering problem
 
@@ -36,12 +36,12 @@ Reviewed ST source is converted deterministically into native `.TcDUT`, `.TcGVL`
 
 ## Verification
 
-The FAT suite covers startup, homing, absolute/relative moves, jog, soft-limit rejection, E-stop during motion, reset, alarm acknowledgement, trace logging, warm restart and cold defaults.
+The FAT suite covers startup, homing, absolute/relative moves, bidirectional jog, positive/negative limits, E-stop, guard door, drive fault, following error, encoder feedback loss, EtherCAT dropout, warm/cold restart, watchdog timeout and invalid command/state transition.
 
 Accepted modular Run 02 produced:
 
 - Zero TwinCAT project build errors.
-- 12 tests run, 12 passed, 0 failed.
+- 16 tests run, 16 passed, 0 failed.
 - Live ADS position/velocity timeline on port 852.
 - Successful forced download and PLC start.
 - Generated boot project with autostart.
@@ -65,7 +65,7 @@ The dependency-free HMI prototype provides:
 - Live position and velocity trend.
 - Mode, safety, relay, homed, motion and fault status.
 - E-stop simulation behavior.
-- Twelve FAT result cards and an event log.
+- Sixteen FAT result cards and an event log.
 
 The production tag contract maps the prototype concepts to public PLC symbols. No HMI writes internal module state.
 

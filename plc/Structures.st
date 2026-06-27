@@ -19,11 +19,19 @@ TYPE ST_AxisStatus :
 STRUCT
     fActualPosition : LREAL;
     fActualVelocity : LREAL;
+    fCommandedPosition : LREAL;
+    fFollowingError : LREAL;
     fActualTorque : LREAL;
     eAxisState : E_AxisState;
     bEnabled : BOOL;
     bHomed : BOOL;
     bInMotion : BOOL;
+    bDriveReady : BOOL;
+    bDriveFault : BOOL;
+    bFeedbackHealthy : BOOL := TRUE;
+    bNetworkHealthy : BOOL := TRUE;
+    bSTOActive : BOOL;
+    bFollowingErrorActive : BOOL;
     bError : BOOL;
     nErrorCode : UDINT;
     bPositiveLimitActive : BOOL;
@@ -46,6 +54,12 @@ STRUCT
     bEStopActive : BOOL;
     bSafetyRelayOK : BOOL;
     bRelayDiscrepancy : BOOL;
+    bGuardDoorOpen : BOOL;
+    bSTOActive : BOOL;
+    bDriveInhibit : BOOL;
+    bNetworkHealthy : BOOL;
+    bWatchdogHealthy : BOOL;
+    bDriveReadyHealthy : BOOL;
     bAnyLimitTripped : BOOL;
     abLimitPosActive : ARRAY[1..2] OF BOOL;
     abLimitNegActive : ARRAY[1..2] OF BOOL;
@@ -188,9 +202,17 @@ TYPE ST_VirtualIO :
 STRUCT
     bEStop : BOOL := TRUE;
     bSafetyRelayFB : BOOL := TRUE;
+    bGuardDoorClosed : BOOL := TRUE;
+    bSTOHealthy : BOOL := TRUE;
     abHomeSwitch : ARRAY[1..2] OF BOOL;
     abLimitPos : ARRAY[1..2] OF BOOL := [TRUE, TRUE];
     abLimitNeg : ARRAY[1..2] OF BOOL := [TRUE, TRUE];
+    abDriveReady : ARRAY[1..2] OF BOOL := [TRUE, TRUE];
+    abDriveFault : ARRAY[1..2] OF BOOL;
+    abEncoderHealthy : ARRAY[1..2] OF BOOL := [TRUE, TRUE];
+    abFollowingError : ARRAY[1..2] OF BOOL;
+    bEtherCATOK : BOOL := TRUE;
+    bWatchdogOK : BOOL := TRUE;
     bSensor1 : BOOL;
     bSensor2 : BOOL;
     bReadyLamp : BOOL;

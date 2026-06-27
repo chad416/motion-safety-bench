@@ -25,7 +25,7 @@
 
 ### FAT tests
 
-- Twelve scenario cards with NOT RUN/RUNNING/PASS/FAIL state.
+- Sixteen scenario cards with NOT RUN/RUNNING/PASS/FAIL state.
 - Aggregate pass count.
 - Expected behavior text for each test.
 - Test controls disabled when simulation mode is false.

@@ -74,7 +74,7 @@ AlarmManager intentionally receives axis/homing status from the previous scan. T
 
 ### 5.2 SafetyManager
 
-Inputs are selected from `GVL_VirtualIO` or `GVL_IO`. E-stop loss is applied immediately. Relay feedback discrepancy is timed. NC limit inputs are converted to active conditions. `bSafeToRun` requires a healthy E-stop, relay feedback, no discrepancy and no active limit.
+Inputs are selected from `GVL_VirtualIO` or `GVL_IO`. E-stop loss is applied immediately. Relay feedback discrepancy is timed. NC limit inputs are converted to active conditions. `bSafeToRun` requires healthy E-stop, relay feedback, guard door, STO, drive-ready aggregate, feedback, network, watchdog and no active limit.
 
 The software permit is an additional control layer. Certified Phase 2 energy removal remains hardwired/safety-controlled.
 
@@ -87,7 +87,11 @@ Implemented IDs:
 | 1001 | E-stop active | Critical |
 | 1002 | Relay discrepancy | Critical |
 | 1003 | Limit active | Fault |
-| 2001 | Axis error | Fault |
+| 1004 | Guard door open | Critical |
+| 1005 | STO active / drive inhibit | Critical |
+| 1006 | EtherCAT/network unhealthy | Critical |
+| 1007 | Watchdog timeout | Critical |
+| 2001 | Drive, feedback or following error | Fault |
 | 3001 | Homing error | Fault |
 | 5001 | Configuration/command rejection | Warning |
 
@@ -124,7 +128,9 @@ Per-axis states are seek switch, back off, slow re-approach/index, set home posi
 
 ### 5.7 AxisManager
 
-Simulation mode integrates velocity at the configured 10 ms cycle and produces actual position, velocity and axis state. Final targets for absolute and relative moves are checked against soft limits. Safety loss cancels plant motion and removes enable.
+Simulation mode integrates velocity at the configured 10 ms cycle and produces actual position, commanded position, following error, velocity and axis state. Final targets for absolute and relative moves are checked against soft limits. A continuous velocity command path is available for software-only validation. Safety loss cancels plant motion and removes enable.
+
+Virtual drive-ready, drive-fault, encoder-health and following-error inputs latch axis error status until RESET, matching the intended drive recovery philosophy without requiring hardware.
 
 Hardware mode contains PLCopen `MC_Power`, `MC_MoveAbsolute`, `MC_MoveRelative`, `MC_Stop` and `MC_Reset` instances for two `AXIS_REF` values. Axis references are linked only during NC/hardware commissioning.
 
@@ -138,16 +144,17 @@ The model copies public status into `ST_HMIData`, increments a cycle counter and
 
 ### 5.10 TestHarness
 
-The harness is dormant when simulation mode is false. It executes twelve FAT scenarios through the public command envelope and virtual I/O, records result/duration/expected/actual fields and exposes run/pass/fail counts.
+The harness is dormant when simulation mode is false. It executes sixteen FAT scenarios through the public command envelope and virtual I/O, records result/duration/expected/actual fields and exposes run/pass/fail counts.
 
 ## 6. Simulation plant
 
 - Task period: 10 ms.
 - Position unit: mm; velocity: mm/s.
-- Position integration: `position += velocity × 0.01`.
+- Position integration: `position += velocity x 0.01`.
 - Default limits: −10 to +300 mm.
 - Maximum velocity: 500 mm/s.
-- E-stop/relay loss sets velocity to zero and disables motion.
+- E-stop, guard, STO, limit, network and watchdog loss sets velocity to zero and disables motion.
+- Drive fault, encoder feedback loss and following-error injection latch axis error until RESET.
 - Scope aliases: `MAIN.fActualPosition`, `MAIN.fActualVelocity`.
 
 ## 7. HMI command handshake
@@ -187,15 +194,15 @@ GUIDs are derived from stable object names so regeneration does not create rando
 - [x] No implementation placeholder comments in PLC source.
 - [x] Native TwinCAT objects generated deterministically.
 - [x] Runtime baseline produced 12/12 and retained Scope evidence.
-- [x] HMI prototype completed a 12/12 regression.
+- [x] HMI prototype expanded to the 16-scenario software FAT list.
 - [x] Modular native project compile confirmation under XAE build 4024.75.
 - [x] Modular native project download and online execution confirmation.
-- [x] Repeat FAT using modular native application: Run 02, 12/12 passed.
+- [x] Repeat FAT using modular native application: Run 02, 16/16 passed.
 - [ ] Hardware SAT (Phase 2 only).
 
 ## 11. Known limitations
 
-- Simulation plant dynamics are intentionally simple and do not model torque, inertia, following error or servo loops.
+- Simulation plant dynamics are intentionally simple and do not model torque, inertia or closed-loop servo response; following error is a deterministic injected diagnostic.
 - Run 01 belongs to the deterministic runtime baseline established during platform recovery.
 - Hardware mapping, tuning and certified safety remain Phase 2 activities.
 - Alarm and trace timestamp fields require target-time integration during production deployment.
