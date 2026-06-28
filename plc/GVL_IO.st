@@ -1,32 +1,33 @@
 (*
-    This is the ONLY file with AT% addresses.
-    All other files use symbolic names.
+    Hardware-facing symbols are deliberately unlocated. Link EtherCAT channels
+    to these variables in the TwinCAT I/O mapping after the physical design is
+    frozen and the SAT polarity checks are complete.
 *)
 VAR_GLOBAL
     (* Inputs *)
-    bPhysEStop           AT %IX0.0 : BOOL;
-    bPhysSafetyRelayFB   AT %IX0.1 : BOOL;
-    bPhysHomeSwitch1     AT %IX0.2 : BOOL;
-    bPhysHomeSwitch2     AT %IX0.3 : BOOL;
-    bPhysLimitPos1       AT %IX0.4 : BOOL;
-    bPhysLimitNeg1       AT %IX0.5 : BOOL;
-    bPhysLimitPos2       AT %IX0.6 : BOOL;
-    bPhysLimitNeg2       AT %IX0.7 : BOOL;
-    bPhysGuardDoorClosed AT %IX1.0 : BOOL;
-    bPhysSTOHealthy      AT %IX1.1 : BOOL;
-    bPhysDriveReady1     AT %IX1.2 : BOOL;
-    bPhysDriveReady2     AT %IX1.3 : BOOL;
-    bPhysDriveFault1     AT %IX1.4 : BOOL;
-    bPhysDriveFault2     AT %IX1.5 : BOOL;
-    bPhysEncoderHealthy1 AT %IX1.6 : BOOL;
-    bPhysEncoderHealthy2 AT %IX1.7 : BOOL;
-    bPhysEtherCATOK      AT %IX2.0 : BOOL;
-    bPhysWatchdogOK      AT %IX2.1 : BOOL;
+    bPhysEStop           : BOOL;
+    bPhysSafetyRelayFB   : BOOL;
+    bPhysHomeSwitch1     : BOOL;
+    bPhysHomeSwitch2     : BOOL;
+    bPhysLimitPos1       : BOOL;
+    bPhysLimitNeg1       : BOOL;
+    bPhysLimitPos2       : BOOL;
+    bPhysLimitNeg2       : BOOL;
+    bPhysGuardDoorClosed : BOOL;
+    bPhysSTOHealthy      : BOOL;
+    bPhysDriveReady1     : BOOL;
+    bPhysDriveReady2     : BOOL;
+    bPhysDriveFault1     : BOOL;
+    bPhysDriveFault2     : BOOL;
+    bPhysEncoderHealthy1 : BOOL;
+    bPhysEncoderHealthy2 : BOOL;
+    bPhysEtherCATOK      : BOOL;
+    bPhysWatchdogOK      : BOOL;
 
     (* Outputs *)
-    bPhysReadyLamp       AT %QX0.0 : BOOL;
-    bPhysFaultLamp       AT %QX0.1 : BOOL;
-    bPhysMotionLamp      AT %QX0.2 : BOOL;
-    bPhysHomedLamp       AT %QX0.3 : BOOL;
-    bPhysSafetyRelayCmd  AT %QX0.4 : BOOL;
+    bPhysReadyLamp       : BOOL;
+    bPhysFaultLamp       : BOOL;
+    bPhysMotionLamp      : BOOL;
+    bPhysHomedLamp       : BOOL;
+    bPhysSafetyRelayCmd  : BOOL;
 END_VAR

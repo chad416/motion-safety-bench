@@ -22,6 +22,15 @@ VAR
     fActualPosition : LREAL;
     fActualVelocity : LREAL;
     eCurrentMode : E_MachineMode;
+    eAxis1State : E_AxisState;
+    eLastCommandStatus : E_CommandStatus;
+    bSimulationModeActive : BOOL;
+    bAxis1InMotion : BOOL;
+    bAxis1Error : BOOL;
+    nAxis1ErrorCode : UDINT;
+    nActiveAlarmCount : UINT;
+    nPrimaryAlarmID : UINT;
+    nSafetyStatusWord : UINT;
 
     (* Module instances. *)
     fbConfig : FB_ConfigPackage;
@@ -247,6 +256,18 @@ nTestsFailed := fbTest.nTestsFailed;
 fActualPosition := fbAxis.astAxisStatus[1].fActualPosition;
 fActualVelocity := fbAxis.astAxisStatus[1].fActualVelocity;
 eCurrentMode := fbMode.eCurrentMode;
+eAxis1State := fbAxis.astAxisStatus[1].eAxisState;
+eLastCommandStatus := fbCommand.eLastCommandStatus;
+bSimulationModeActive := fbConfig.bSimulationMode;
+bAxis1InMotion := fbAxis.astAxisStatus[1].bInMotion;
+bAxis1Error := fbAxis.astAxisStatus[1].bError;
+nAxis1ErrorCode := fbAxis.astAxisStatus[1].nErrorCode;
+nActiveAlarmCount := fbAlarm.nActiveAlarmCount;
+nPrimaryAlarmID := 0;
+IF fbAlarm.nActiveAlarmCount > 0 THEN
+    nPrimaryAlarmID := fbAlarm.astActiveAlarms[1].nID;
+END_IF
+nSafetyStatusWord := fbSafety.stSafetyStatus.nSafetyStatusWord;
 ]]></ST>
     </Implementation>
   </POU>

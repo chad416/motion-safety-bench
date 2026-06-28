@@ -304,7 +304,7 @@ All of the following must be true before hardware procurement is authorized:
 | SIM-QG2 | PASS — TR07 validates the E-stop fault response |
 | SIM-QG3 | PASS — TR08 validates the FAULT→RESET→INIT recovery |
 | SIM-QG4 | PASS — trace behavior is covered by the modular suite and retained baseline |
-| SIM-QG5 | PASS — physical addresses are isolated to `GVL_IO` |
+| SIM-QG5 | PASS — physical channels use unlocated `GVL_IO` symbols with no fixed process-image addresses |
 | SIM-QG6 | PASS — accepted runs use the deterministic simulation plant |
 
 ---

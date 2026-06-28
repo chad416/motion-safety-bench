@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+﻿<?xml version="1.0"?>
 <TcSmProject xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.beckhoff.com/schemas/2012/07/TcSmProject" TcSmVersion="1.0" TcVersion="3.1.4024.75">
 	<DataTypes>
 		<DataType>
@@ -1611,85 +1611,12 @@ External Setpoint Generation:
 			</NC>
 		</Motion>
 		<Plc>
-			<Project GUID="{44E41B1F-1282-47A8-9246-D06D26944F39}" Name="MotionSafetyBenchPLC" PrjFilePath="..\RuntimeSimulation\MotionSafetyBenchPLC.plcproj" TmcFilePath="..\RuntimeSimulation\MotionSafetyBenchPLC.tmc" ReloadTmc="true" AmsPort="852" FileArchiveSettings="#x000e" SymbolicMapping="true">
-				<Instance Id="#x08502040" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcPath="..\RuntimeSimulation\MotionSafetyBenchPLC.tmc" TmcHash="{557B2FBA-9AA0-3672-326B-529C4781AF90}">
+			<Project GUID="{44E41B1F-1282-47A8-9246-D06D26944F39}" Name="MotionSafetyBenchPLC" PrjFilePath="..\RuntimeSimulation\MotionSafetyBenchPLC.plcproj" TmcFilePath="..\RuntimeSimulation\MotionSafetyBenchPLC.tmc" ReloadTmc="true" AmsPort="852" FileArchiveSettings="#x000e">
+				<Instance Id="#x08502040" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" SymbolicMapping="false" TmcPath="..\RuntimeSimulation\MotionSafetyBenchPLC.tmc" TmcHash="{56D852BA-C354-B54E-3E61-8ACE1A2978E3}">
 					<Name>MotionSafetyBenchPLC Instance</Name>
 					<CLSID ClassFactory="TcPlc30">{08500001-0000-0000-F000-000000000064}</CLSID>
 					<Vars VarGrpType="1">
 						<Name>PlcTask Inputs</Name>
-						<Var>
-							<Name>GVL_IO.bPhysEStop</Name>
-							<Comment><![CDATA[ Inputs ]]></Comment>
-							<Type>BIT</Type>
-						</Var>
-						<Var>
-							<Name>GVL_IO.bPhysSafetyRelayFB</Name>
-							<Type>BIT</Type>
-						</Var>
-						<Var>
-							<Name>GVL_IO.bPhysHomeSwitch1</Name>
-							<Type>BIT</Type>
-						</Var>
-						<Var>
-							<Name>GVL_IO.bPhysHomeSwitch2</Name>
-							<Type>BIT</Type>
-						</Var>
-						<Var>
-							<Name>GVL_IO.bPhysLimitPos1</Name>
-							<Type>BIT</Type>
-						</Var>
-						<Var>
-							<Name>GVL_IO.bPhysLimitNeg1</Name>
-							<Type>BIT</Type>
-						</Var>
-						<Var>
-							<Name>GVL_IO.bPhysLimitPos2</Name>
-							<Type>BIT</Type>
-						</Var>
-						<Var>
-							<Name>GVL_IO.bPhysLimitNeg2</Name>
-							<Type>BIT</Type>
-						</Var>
-						<Var>
-							<Name>GVL_IO.bPhysGuardDoorClosed</Name>
-							<Type>BIT</Type>
-						</Var>
-						<Var>
-							<Name>GVL_IO.bPhysSTOHealthy</Name>
-							<Type>BIT</Type>
-						</Var>
-						<Var>
-							<Name>GVL_IO.bPhysDriveReady1</Name>
-							<Type>BIT</Type>
-						</Var>
-						<Var>
-							<Name>GVL_IO.bPhysDriveReady2</Name>
-							<Type>BIT</Type>
-						</Var>
-						<Var>
-							<Name>GVL_IO.bPhysDriveFault1</Name>
-							<Type>BIT</Type>
-						</Var>
-						<Var>
-							<Name>GVL_IO.bPhysDriveFault2</Name>
-							<Type>BIT</Type>
-						</Var>
-						<Var>
-							<Name>GVL_IO.bPhysEncoderHealthy1</Name>
-							<Type>BIT</Type>
-						</Var>
-						<Var>
-							<Name>GVL_IO.bPhysEncoderHealthy2</Name>
-							<Type>BIT</Type>
-						</Var>
-						<Var>
-							<Name>GVL_IO.bPhysEtherCATOK</Name>
-							<Type>BIT</Type>
-						</Var>
-						<Var>
-							<Name>GVL_IO.bPhysWatchdogOK</Name>
-							<Type>BIT</Type>
-						</Var>
 						<Var>
 							<Name>MAIN.axis1Ref.NcToPlc</Name>
 							<Type GUID="{25521FAA-EA5F-4C7F-8864-BBCCDACD2E98}" Namespace="MC">NCTOPLC_AXIS_REF</Type>
@@ -1701,27 +1628,6 @@ External Setpoint Generation:
 					</Vars>
 					<Vars VarGrpType="2" AreaNo="1">
 						<Name>PlcTask Outputs</Name>
-						<Var>
-							<Name>GVL_IO.bPhysReadyLamp</Name>
-							<Comment><![CDATA[ Outputs ]]></Comment>
-							<Type>BIT</Type>
-						</Var>
-						<Var>
-							<Name>GVL_IO.bPhysFaultLamp</Name>
-							<Type>BIT</Type>
-						</Var>
-						<Var>
-							<Name>GVL_IO.bPhysMotionLamp</Name>
-							<Type>BIT</Type>
-						</Var>
-						<Var>
-							<Name>GVL_IO.bPhysHomedLamp</Name>
-							<Type>BIT</Type>
-						</Var>
-						<Var>
-							<Name>GVL_IO.bPhysSafetyRelayCmd</Name>
-							<Type>BIT</Type>
-						</Var>
 						<Var>
 							<Name>MAIN.axis1Ref.PlcToNc</Name>
 							<Type GUID="{96B75FEB-2D84-43BE-A3EC-D9A681F27D52}" Namespace="MC">PLCTONC_AXIS_REF</Type>

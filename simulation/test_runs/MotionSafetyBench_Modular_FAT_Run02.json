@@ -1,14 +1,17 @@
 ﻿{
     "runId":  "MotionSafetyBench_Modular_FAT_Run02",
-    "generatedUtc":  "2026-06-27T19:11:20.9102381Z",
-    "targetNetId":  "local",
+    "generatedUtc":  "2026-06-28T01:54:05.2031708Z",
+    "targetNetId":  "10.212.36.180.1.1",
     "targetPort":  852,
     "adsState":  "Run",
+    "suiteAdsState":  "Run",
     "timeoutSeconds":  180,
-    "elapsedSeconds":  19.772,
-    "sampleCount":  153,
+    "elapsedSeconds":  22.395,
+    "sampleCount":  393,
     "completed":  true,
     "passed":  true,
+    "suitePassed":  true,
+    "restartValidationPassed":  true,
     "testsRun":  16,
     "testsPassed":  16,
     "testsFailed":  0,
@@ -17,6 +20,91 @@
     "finalPosition":  142,
     "finalVelocity":  0,
     "evidenceCsv":  "simulation/test_runs/MotionSafetyBench_Modular_FAT_Run02.csv",
+    "restartValidation":  [
+                              {
+                                  "type":  "warm",
+                                  "controlSequence":  "ADS Stop -\u003e ADS Run",
+                                  "requestedUtc":  "2026-06-28T01:54:03.5631103Z",
+                                  "stoppedState":  "Stop",
+                                  "resumedState":  "Run",
+                                  "passed":  true,
+                                  "acceptance":  "Counters preserved; no stale motion after resume",
+                                  "before":  {
+                                                 "timestampUtc":  "2026-06-28T01:54:03.5378246Z",
+                                                 "adsState":  "Run",
+                                                 "simulationMode":  true,
+                                                 "simulationRunning":  false,
+                                                 "simulationComplete":  true,
+                                                 "testsRun":  16,
+                                                 "testsPassed":  16,
+                                                 "testsFailed":  0,
+                                                 "modeCode":  0,
+                                                 "mode":  "OFF",
+                                                 "axisStateCode":  0,
+                                                 "axisState":  "DISABLED",
+                                                 "inMotion":  false,
+                                                 "axisError":  false,
+                                                 "axisErrorCode":  0,
+                                                 "activeAlarmCount":  1,
+                                                 "primaryAlarmId":  5001,
+                                                 "position":  142,
+                                                 "velocity":  0
+                                             },
+                                  "after":  {
+                                                "timestampUtc":  "2026-06-28T01:54:04.0684950Z",
+                                                "adsState":  "Run",
+                                                "simulationMode":  true,
+                                                "simulationRunning":  false,
+                                                "simulationComplete":  true,
+                                                "testsRun":  16,
+                                                "testsPassed":  16,
+                                                "testsFailed":  0,
+                                                "modeCode":  0,
+                                                "mode":  "OFF",
+                                                "axisStateCode":  0,
+                                                "axisState":  "DISABLED",
+                                                "inMotion":  false,
+                                                "axisError":  false,
+                                                "axisErrorCode":  0,
+                                                "activeAlarmCount":  1,
+                                                "primaryAlarmId":  5001,
+                                                "position":  142,
+                                                "velocity":  0
+                                            },
+                                  "error":  null
+                              },
+                              {
+                                  "type":  "cold",
+                                  "controlSequence":  "ADS Reset -\u003e ADS Run",
+                                  "requestedUtc":  "2026-06-28T01:54:04.1453394Z",
+                                  "resetState":  "Stop",
+                                  "resumedState":  "Run",
+                                  "passed":  true,
+                                  "acceptance":  "Initialized counters, alarms and motion state restored",
+                                  "after":  {
+                                                "timestampUtc":  "2026-06-28T01:54:05.1740795Z",
+                                                "adsState":  "Run",
+                                                "simulationMode":  true,
+                                                "simulationRunning":  false,
+                                                "simulationComplete":  false,
+                                                "testsRun":  0,
+                                                "testsPassed":  0,
+                                                "testsFailed":  0,
+                                                "modeCode":  0,
+                                                "mode":  "OFF",
+                                                "axisStateCode":  0,
+                                                "axisState":  "DISABLED",
+                                                "inMotion":  false,
+                                                "axisError":  false,
+                                                "axisErrorCode":  0,
+                                                "activeAlarmCount":  0,
+                                                "primaryAlarmId":  0,
+                                                "position":  0,
+                                                "velocity":  0
+                                            },
+                                  "error":  null
+                              }
+                          ],
     "tests":  [
                   {
                       "testId":  1,
@@ -25,7 +113,80 @@
                       "resultCode":  2,
                       "expected":  "Safe startup reaches MANUAL with both axes homed",
                       "actual":  "Startup, homing and MANUAL-ready state evaluated",
-                      "durationMs":  1220
+                      "startedUtc":  "2026-06-28T01:53:44.3432265Z",
+                      "completedUtc":  "2026-06-28T01:53:45.4455677Z",
+                      "durationMs":  1270,
+                      "sampleCount":  24,
+                      "stateTransitions":  {
+                                               "mode":  [
+                                                            {
+                                                                "timestampUtc":  "2026-06-28T01:53:44.3432265Z",
+                                                                "elapsedSeconds":  1.533,
+                                                                "from":  "NOT_CAPTURED",
+                                                                "to":  "HOMING",
+                                                                "toCode":  2
+                                                            },
+                                                            {
+                                                                "timestampUtc":  "2026-06-28T01:53:45.0738904Z",
+                                                                "elapsedSeconds":  2.266,
+                                                                "from":  "HOMING",
+                                                                "to":  "MANUAL_JOG",
+                                                                "toCode":  3
+                                                            }
+                                                        ],
+                                               "axis1":  [
+                                                             {
+                                                                 "timestampUtc":  "2026-06-28T01:53:44.3432265Z",
+                                                                 "elapsedSeconds":  1.533,
+                                                                 "from":  "NOT_CAPTURED",
+                                                                 "to":  "CONTINUOUS_MOTION",
+                                                                 "toCode":  4
+                                                             },
+                                                             {
+                                                                 "timestampUtc":  "2026-06-28T01:53:44.6323000Z",
+                                                                 "elapsedSeconds":  1.824,
+                                                                 "from":  "CONTINUOUS_MOTION",
+                                                                 "to":  "STANDSTILL",
+                                                                 "toCode":  1
+                                                             }
+                                                         ],
+                                               "command":  [
+                                                               {
+                                                                   "timestampUtc":  "2026-06-28T01:53:44.3432265Z",
+                                                                   "elapsedSeconds":  1.533,
+                                                                   "from":  "NOT_CAPTURED",
+                                                                   "to":  "DONE",
+                                                                   "toCode":  3
+                                                               }
+                                                           ]
+                                           },
+                      "alarmsObserved":  {
+                                             "ids":  [
+
+                                                     ],
+                                             "maxActiveCount":  0,
+                                             "clearedAtEnd":  true
+                                         },
+                      "recovery":  {
+                                       "observed":  true,
+                                       "finalMode":  "MANUAL_JOG",
+                                       "finalAxisState":  "STANDSTILL",
+                                       "finalAlarmCount":  0,
+                                       "finalInMotion":  false,
+                                       "finalVelocity":  0
+                                   },
+                      "motionMetrics":  {
+                                            "startPosition":  -10,
+                                            "endPosition":  0,
+                                            "minimumPosition":  -16,
+                                            "maximumPosition":  0,
+                                            "travelDistance":  38,
+                                            "peakAbsoluteVelocity":  100,
+                                            "safetyStatusWords":  [
+                                                                      499
+                                                                  ]
+                                        },
+                      "runtimeRestart":  null
                   },
                   {
                       "testId":  2,
@@ -34,7 +195,73 @@
                       "resultCode":  2,
                       "expected":  "Axis 1 reaches 100.0 mm",
                       "actual":  "Absolute position tolerance evaluated",
-                      "durationMs":  530
+                      "startedUtc":  "2026-06-28T01:53:45.4931254Z",
+                      "completedUtc":  "2026-06-28T01:53:46.0097957Z",
+                      "durationMs":  580,
+                      "sampleCount":  12,
+                      "stateTransitions":  {
+                                               "mode":  [
+                                                            {
+                                                                "timestampUtc":  "2026-06-28T01:53:45.4931254Z",
+                                                                "elapsedSeconds":  2.685,
+                                                                "from":  "NOT_CAPTURED",
+                                                                "to":  "MANUAL_JOG",
+                                                                "toCode":  3
+                                                            }
+                                                        ],
+                                               "axis1":  [
+                                                             {
+                                                                 "timestampUtc":  "2026-06-28T01:53:45.4931254Z",
+                                                                 "elapsedSeconds":  2.685,
+                                                                 "from":  "NOT_CAPTURED",
+                                                                 "to":  "DISCRETE_MOTION",
+                                                                 "toCode":  3
+                                                             },
+                                                             {
+                                                                 "timestampUtc":  "2026-06-28T01:53:46.0097957Z",
+                                                                 "elapsedSeconds":  3.202,
+                                                                 "from":  "DISCRETE_MOTION",
+                                                                 "to":  "STANDSTILL",
+                                                                 "toCode":  1
+                                                             }
+                                                         ],
+                                               "command":  [
+                                                               {
+                                                                   "timestampUtc":  "2026-06-28T01:53:45.4931254Z",
+                                                                   "elapsedSeconds":  2.685,
+                                                                   "from":  "NOT_CAPTURED",
+                                                                   "to":  "DONE",
+                                                                   "toCode":  3
+                                                               }
+                                                           ]
+                                           },
+                      "alarmsObserved":  {
+                                             "ids":  [
+
+                                                     ],
+                                             "maxActiveCount":  0,
+                                             "clearedAtEnd":  true
+                                         },
+                      "recovery":  {
+                                       "observed":  true,
+                                       "finalMode":  "MANUAL_JOG",
+                                       "finalAxisState":  "STANDSTILL",
+                                       "finalAlarmCount":  0,
+                                       "finalInMotion":  false,
+                                       "finalVelocity":  0
+                                   },
+                      "motionMetrics":  {
+                                            "startPosition":  2,
+                                            "endPosition":  100,
+                                            "minimumPosition":  2,
+                                            "maximumPosition":  100,
+                                            "travelDistance":  98,
+                                            "peakAbsoluteVelocity":  200,
+                                            "safetyStatusWords":  [
+                                                                      499
+                                                                  ]
+                                        },
+                      "runtimeRestart":  null
                   },
                   {
                       "testId":  3,
@@ -43,7 +270,80 @@
                       "resultCode":  2,
                       "expected":  "Axis 1 advances by 50.0 mm",
                       "actual":  "Relative position tolerance evaluated",
-                      "durationMs":  280
+                      "startedUtc":  "2026-06-28T01:53:46.0564208Z",
+                      "completedUtc":  "2026-06-28T01:53:46.3811802Z",
+                      "durationMs":  330,
+                      "sampleCount":  8,
+                      "stateTransitions":  {
+                                               "mode":  [
+                                                            {
+                                                                "timestampUtc":  "2026-06-28T01:53:46.0564208Z",
+                                                                "elapsedSeconds":  3.248,
+                                                                "from":  "NOT_CAPTURED",
+                                                                "to":  "MANUAL_JOG",
+                                                                "toCode":  3
+                                                            }
+                                                        ],
+                                               "axis1":  [
+                                                             {
+                                                                 "timestampUtc":  "2026-06-28T01:53:46.0564208Z",
+                                                                 "elapsedSeconds":  3.248,
+                                                                 "from":  "NOT_CAPTURED",
+                                                                 "to":  "STANDSTILL",
+                                                                 "toCode":  1
+                                                             },
+                                                             {
+                                                                 "timestampUtc":  "2026-06-28T01:53:46.1006570Z",
+                                                                 "elapsedSeconds":  3.293,
+                                                                 "from":  "STANDSTILL",
+                                                                 "to":  "DISCRETE_MOTION",
+                                                                 "toCode":  3
+                                                             },
+                                                             {
+                                                                 "timestampUtc":  "2026-06-28T01:53:46.3348810Z",
+                                                                 "elapsedSeconds":  3.527,
+                                                                 "from":  "DISCRETE_MOTION",
+                                                                 "to":  "STANDSTILL",
+                                                                 "toCode":  1
+                                                             }
+                                                         ],
+                                               "command":  [
+                                                               {
+                                                                   "timestampUtc":  "2026-06-28T01:53:46.0564208Z",
+                                                                   "elapsedSeconds":  3.248,
+                                                                   "from":  "NOT_CAPTURED",
+                                                                   "to":  "DONE",
+                                                                   "toCode":  3
+                                                               }
+                                                           ]
+                                           },
+                      "alarmsObserved":  {
+                                             "ids":  [
+
+                                                     ],
+                                             "maxActiveCount":  0,
+                                             "clearedAtEnd":  true
+                                         },
+                      "recovery":  {
+                                       "observed":  true,
+                                       "finalMode":  "MANUAL_JOG",
+                                       "finalAxisState":  "STANDSTILL",
+                                       "finalAlarmCount":  0,
+                                       "finalInMotion":  false,
+                                       "finalVelocity":  0
+                                   },
+                      "motionMetrics":  {
+                                            "startPosition":  100,
+                                            "endPosition":  150,
+                                            "minimumPosition":  100,
+                                            "maximumPosition":  150,
+                                            "travelDistance":  50,
+                                            "peakAbsoluteVelocity":  200,
+                                            "safetyStatusWords":  [
+                                                                      499
+                                                                  ]
+                                        },
+                      "runtimeRestart":  null
                   },
                   {
                       "testId":  4,
@@ -52,7 +352,87 @@
                       "resultCode":  2,
                       "expected":  "Axis jogs both directions and stops on release",
                       "actual":  "Bidirectional jog displacement and standstill evaluated",
-                      "durationMs":  1420
+                      "startedUtc":  "2026-06-28T01:53:46.4288553Z",
+                      "completedUtc":  "2026-06-28T01:53:47.8371001Z",
+                      "durationMs":  1470,
+                      "sampleCount":  31,
+                      "stateTransitions":  {
+                                               "mode":  [
+                                                            {
+                                                                "timestampUtc":  "2026-06-28T01:53:46.4288553Z",
+                                                                "elapsedSeconds":  3.621,
+                                                                "from":  "NOT_CAPTURED",
+                                                                "to":  "MANUAL_JOG",
+                                                                "toCode":  3
+                                                            }
+                                                        ],
+                                               "axis1":  [
+                                                             {
+                                                                 "timestampUtc":  "2026-06-28T01:53:46.4288553Z",
+                                                                 "elapsedSeconds":  3.621,
+                                                                 "from":  "NOT_CAPTURED",
+                                                                 "to":  "CONTINUOUS_MOTION",
+                                                                 "toCode":  4
+                                                             },
+                                                             {
+                                                                 "timestampUtc":  "2026-06-28T01:53:46.9455234Z",
+                                                                 "elapsedSeconds":  4.137,
+                                                                 "from":  "CONTINUOUS_MOTION",
+                                                                 "to":  "STANDSTILL",
+                                                                 "toCode":  1
+                                                             },
+                                                             {
+                                                                 "timestampUtc":  "2026-06-28T01:53:47.1336269Z",
+                                                                 "elapsedSeconds":  4.326,
+                                                                 "from":  "STANDSTILL",
+                                                                 "to":  "CONTINUOUS_MOTION",
+                                                                 "toCode":  4
+                                                             },
+                                                             {
+                                                                 "timestampUtc":  "2026-06-28T01:53:47.6483142Z",
+                                                                 "elapsedSeconds":  4.84,
+                                                                 "from":  "CONTINUOUS_MOTION",
+                                                                 "to":  "STANDSTILL",
+                                                                 "toCode":  1
+                                                             }
+                                                         ],
+                                               "command":  [
+                                                               {
+                                                                   "timestampUtc":  "2026-06-28T01:53:46.4288553Z",
+                                                                   "elapsedSeconds":  3.621,
+                                                                   "from":  "NOT_CAPTURED",
+                                                                   "to":  "DONE",
+                                                                   "toCode":  3
+                                                               }
+                                                           ]
+                                           },
+                      "alarmsObserved":  {
+                                             "ids":  [
+
+                                                     ],
+                                             "maxActiveCount":  0,
+                                             "clearedAtEnd":  true
+                                         },
+                      "recovery":  {
+                                       "observed":  true,
+                                       "finalMode":  "MANUAL_JOG",
+                                       "finalAxisState":  "STANDSTILL",
+                                       "finalAlarmCount":  0,
+                                       "finalInMotion":  false,
+                                       "finalVelocity":  0
+                                   },
+                      "motionMetrics":  {
+                                            "startPosition":  152,
+                                            "endPosition":  149,
+                                            "minimumPosition":  149,
+                                            "maximumPosition":  200,
+                                            "travelDistance":  99,
+                                            "peakAbsoluteVelocity":  100,
+                                            "safetyStatusWords":  [
+                                                                      499
+                                                                  ]
+                                        },
+                      "runtimeRestart":  null
                   },
                   {
                       "testId":  5,
@@ -61,7 +441,101 @@
                       "resultCode":  2,
                       "expected":  "Positive limit stops motion, enters FAULT, recovers",
                       "actual":  "Positive limit FAULT and recovery evaluated",
-                      "durationMs":  1440
+                      "startedUtc":  "2026-06-28T01:53:47.8838317Z",
+                      "completedUtc":  "2026-06-28T01:53:49.3526253Z",
+                      "durationMs":  1490,
+                      "sampleCount":  32,
+                      "stateTransitions":  {
+                                               "mode":  [
+                                                            {
+                                                                "timestampUtc":  "2026-06-28T01:53:47.8838317Z",
+                                                                "elapsedSeconds":  5.076,
+                                                                "from":  "NOT_CAPTURED",
+                                                                "to":  "MANUAL_JOG",
+                                                                "toCode":  3
+                                                            },
+                                                            {
+                                                                "timestampUtc":  "2026-06-28T01:53:48.1193669Z",
+                                                                "elapsedSeconds":  5.311,
+                                                                "from":  "MANUAL_JOG",
+                                                                "to":  "RESET",
+                                                                "toCode":  6
+                                                            },
+                                                            {
+                                                                "timestampUtc":  "2026-06-28T01:53:48.8212003Z",
+                                                                "elapsedSeconds":  6.013,
+                                                                "from":  "RESET",
+                                                                "to":  "INIT",
+                                                                "toCode":  1
+                                                            },
+                                                            {
+                                                                "timestampUtc":  "2026-06-28T01:53:49.3035874Z",
+                                                                "elapsedSeconds":  6.495,
+                                                                "from":  "INIT",
+                                                                "to":  "MANUAL_JOG",
+                                                                "toCode":  3
+                                                            }
+                                                        ],
+                                               "axis1":  [
+                                                             {
+                                                                 "timestampUtc":  "2026-06-28T01:53:47.8838317Z",
+                                                                 "elapsedSeconds":  5.076,
+                                                                 "from":  "NOT_CAPTURED",
+                                                                 "to":  "STANDSTILL",
+                                                                 "toCode":  1
+                                                             },
+                                                             {
+                                                                 "timestampUtc":  "2026-06-28T01:53:47.9318947Z",
+                                                                 "elapsedSeconds":  5.124,
+                                                                 "from":  "STANDSTILL",
+                                                                 "to":  "DISCRETE_MOTION",
+                                                                 "toCode":  3
+                                                             },
+                                                             {
+                                                                 "timestampUtc":  "2026-06-28T01:53:48.1193669Z",
+                                                                 "elapsedSeconds":  5.311,
+                                                                 "from":  "DISCRETE_MOTION",
+                                                                 "to":  "STANDSTILL",
+                                                                 "toCode":  1
+                                                             }
+                                                         ],
+                                               "command":  [
+                                                               {
+                                                                   "timestampUtc":  "2026-06-28T01:53:47.8838317Z",
+                                                                   "elapsedSeconds":  5.076,
+                                                                   "from":  "NOT_CAPTURED",
+                                                                   "to":  "DONE",
+                                                                   "toCode":  3
+                                                               }
+                                                           ]
+                                           },
+                      "alarmsObserved":  {
+                                             "ids":  [
+                                                         1003
+                                                     ],
+                                             "maxActiveCount":  1,
+                                             "clearedAtEnd":  true
+                                         },
+                      "recovery":  {
+                                       "observed":  true,
+                                       "finalMode":  "MANUAL_JOG",
+                                       "finalAxisState":  "STANDSTILL",
+                                       "finalAlarmCount":  0,
+                                       "finalInMotion":  false,
+                                       "finalVelocity":  0
+                                   },
+                      "motionMetrics":  {
+                                            "startPosition":  149,
+                                            "endPosition":  168,
+                                            "minimumPosition":  149,
+                                            "maximumPosition":  168,
+                                            "travelDistance":  19,
+                                            "peakAbsoluteVelocity":  100,
+                                            "safetyStatusWords":  [
+                                                                      499
+                                                                  ]
+                                        },
+                      "runtimeRestart":  null
                   },
                   {
                       "testId":  6,
@@ -70,7 +544,101 @@
                       "resultCode":  2,
                       "expected":  "Negative limit stops motion, enters FAULT, recovers",
                       "actual":  "Negative limit FAULT and recovery evaluated",
-                      "durationMs":  1440
+                      "startedUtc":  "2026-06-28T01:53:49.3969699Z",
+                      "completedUtc":  "2026-06-28T01:53:50.8686485Z",
+                      "durationMs":  1490,
+                      "sampleCount":  32,
+                      "stateTransitions":  {
+                                               "mode":  [
+                                                            {
+                                                                "timestampUtc":  "2026-06-28T01:53:49.3969699Z",
+                                                                "elapsedSeconds":  6.589,
+                                                                "from":  "NOT_CAPTURED",
+                                                                "to":  "MANUAL_JOG",
+                                                                "toCode":  3
+                                                            },
+                                                            {
+                                                                "timestampUtc":  "2026-06-28T01:53:49.5866254Z",
+                                                                "elapsedSeconds":  6.779,
+                                                                "from":  "MANUAL_JOG",
+                                                                "to":  "FAULT",
+                                                                "toCode":  5
+                                                            },
+                                                            {
+                                                                "timestampUtc":  "2026-06-28T01:53:49.6316014Z",
+                                                                "elapsedSeconds":  6.824,
+                                                                "from":  "FAULT",
+                                                                "to":  "RESET",
+                                                                "toCode":  6
+                                                            },
+                                                            {
+                                                                "timestampUtc":  "2026-06-28T01:53:50.2917695Z",
+                                                                "elapsedSeconds":  7.484,
+                                                                "from":  "RESET",
+                                                                "to":  "INIT",
+                                                                "toCode":  1
+                                                            },
+                                                            {
+                                                                "timestampUtc":  "2026-06-28T01:53:50.8186263Z",
+                                                                "elapsedSeconds":  8.01,
+                                                                "from":  "INIT",
+                                                                "to":  "MANUAL_JOG",
+                                                                "toCode":  3
+                                                            }
+                                                        ],
+                                               "axis1":  [
+                                                             {
+                                                                 "timestampUtc":  "2026-06-28T01:53:49.3969699Z",
+                                                                 "elapsedSeconds":  6.589,
+                                                                 "from":  "NOT_CAPTURED",
+                                                                 "to":  "DISCRETE_MOTION",
+                                                                 "toCode":  3
+                                                             },
+                                                             {
+                                                                 "timestampUtc":  "2026-06-28T01:53:49.5866254Z",
+                                                                 "elapsedSeconds":  6.779,
+                                                                 "from":  "DISCRETE_MOTION",
+                                                                 "to":  "STANDSTILL",
+                                                                 "toCode":  1
+                                                             }
+                                                         ],
+                                               "command":  [
+                                                               {
+                                                                   "timestampUtc":  "2026-06-28T01:53:49.3969699Z",
+                                                                   "elapsedSeconds":  6.589,
+                                                                   "from":  "NOT_CAPTURED",
+                                                                   "to":  "DONE",
+                                                                   "toCode":  3
+                                                               }
+                                                           ]
+                                           },
+                      "alarmsObserved":  {
+                                             "ids":  [
+                                                         1003
+                                                     ],
+                                             "maxActiveCount":  1,
+                                             "clearedAtEnd":  true
+                                         },
+                      "recovery":  {
+                                       "observed":  true,
+                                       "finalMode":  "MANUAL_JOG",
+                                       "finalAxisState":  "STANDSTILL",
+                                       "finalAlarmCount":  0,
+                                       "finalInMotion":  false,
+                                       "finalVelocity":  0
+                                   },
+                      "motionMetrics":  {
+                                            "startPosition":  167,
+                                            "endPosition":  149,
+                                            "minimumPosition":  149,
+                                            "maximumPosition":  167,
+                                            "travelDistance":  18,
+                                            "peakAbsoluteVelocity":  100,
+                                            "safetyStatusWords":  [
+                                                                      499
+                                                                  ]
+                                        },
+                      "runtimeRestart":  null
                   },
                   {
                       "testId":  7,
@@ -79,7 +647,101 @@
                       "resultCode":  2,
                       "expected":  "E-stop stops motion, enters FAULT, recovers",
                       "actual":  "E-stop FAULT and recovery evaluated",
-                      "durationMs":  1440
+                      "startedUtc":  "2026-06-28T01:53:50.9140828Z",
+                      "completedUtc":  "2026-06-28T01:53:52.3505974Z",
+                      "durationMs":  1490,
+                      "sampleCount":  31,
+                      "stateTransitions":  {
+                                               "mode":  [
+                                                            {
+                                                                "timestampUtc":  "2026-06-28T01:53:50.9140828Z",
+                                                                "elapsedSeconds":  8.106,
+                                                                "from":  "NOT_CAPTURED",
+                                                                "to":  "MANUAL_JOG",
+                                                                "toCode":  3
+                                                            },
+                                                            {
+                                                                "timestampUtc":  "2026-06-28T01:53:51.1007930Z",
+                                                                "elapsedSeconds":  8.293,
+                                                                "from":  "MANUAL_JOG",
+                                                                "to":  "FAULT",
+                                                                "toCode":  5
+                                                            },
+                                                            {
+                                                                "timestampUtc":  "2026-06-28T01:53:51.1504664Z",
+                                                                "elapsedSeconds":  8.342,
+                                                                "from":  "FAULT",
+                                                                "to":  "RESET",
+                                                                "toCode":  6
+                                                            },
+                                                            {
+                                                                "timestampUtc":  "2026-06-28T01:53:51.8208233Z",
+                                                                "elapsedSeconds":  9.013,
+                                                                "from":  "RESET",
+                                                                "to":  "INIT",
+                                                                "toCode":  1
+                                                            },
+                                                            {
+                                                                "timestampUtc":  "2026-06-28T01:53:52.3059818Z",
+                                                                "elapsedSeconds":  9.498,
+                                                                "from":  "INIT",
+                                                                "to":  "MANUAL_JOG",
+                                                                "toCode":  3
+                                                            }
+                                                        ],
+                                               "axis1":  [
+                                                             {
+                                                                 "timestampUtc":  "2026-06-28T01:53:50.9140828Z",
+                                                                 "elapsedSeconds":  8.106,
+                                                                 "from":  "NOT_CAPTURED",
+                                                                 "to":  "DISCRETE_MOTION",
+                                                                 "toCode":  3
+                                                             },
+                                                             {
+                                                                 "timestampUtc":  "2026-06-28T01:53:51.1007930Z",
+                                                                 "elapsedSeconds":  8.293,
+                                                                 "from":  "DISCRETE_MOTION",
+                                                                 "to":  "STANDSTILL",
+                                                                 "toCode":  1
+                                                             }
+                                                         ],
+                                               "command":  [
+                                                               {
+                                                                   "timestampUtc":  "2026-06-28T01:53:50.9140828Z",
+                                                                   "elapsedSeconds":  8.106,
+                                                                   "from":  "NOT_CAPTURED",
+                                                                   "to":  "DONE",
+                                                                   "toCode":  3
+                                                               }
+                                                           ]
+                                           },
+                      "alarmsObserved":  {
+                                             "ids":  [
+                                                         1001
+                                                     ],
+                                             "maxActiveCount":  1,
+                                             "clearedAtEnd":  true
+                                         },
+                      "recovery":  {
+                                       "observed":  true,
+                                       "finalMode":  "MANUAL_JOG",
+                                       "finalAxisState":  "STANDSTILL",
+                                       "finalAlarmCount":  0,
+                                       "finalInMotion":  false,
+                                       "finalVelocity":  0
+                                   },
+                      "motionMetrics":  {
+                                            "startPosition":  151,
+                                            "endPosition":  168,
+                                            "minimumPosition":  151,
+                                            "maximumPosition":  168,
+                                            "travelDistance":  17,
+                                            "peakAbsoluteVelocity":  100,
+                                            "safetyStatusWords":  [
+                                                                      499
+                                                                  ]
+                                        },
+                      "runtimeRestart":  null
                   },
                   {
                       "testId":  8,
@@ -88,7 +750,115 @@
                       "resultCode":  2,
                       "expected":  "Guard door inhibits motion, enters FAULT, recovers",
                       "actual":  "Guard door FAULT and recovery evaluated",
-                      "durationMs":  1440
+                      "startedUtc":  "2026-06-28T01:53:52.3967841Z",
+                      "completedUtc":  "2026-06-28T01:53:53.8509361Z",
+                      "durationMs":  1490,
+                      "sampleCount":  31,
+                      "stateTransitions":  {
+                                               "mode":  [
+                                                            {
+                                                                "timestampUtc":  "2026-06-28T01:53:52.3967841Z",
+                                                                "elapsedSeconds":  9.589,
+                                                                "from":  "NOT_CAPTURED",
+                                                                "to":  "MANUAL_JOG",
+                                                                "toCode":  3
+                                                            },
+                                                            {
+                                                                "timestampUtc":  "2026-06-28T01:53:52.5878219Z",
+                                                                "elapsedSeconds":  9.78,
+                                                                "from":  "MANUAL_JOG",
+                                                                "to":  "FAULT",
+                                                                "toCode":  5
+                                                            },
+                                                            {
+                                                                "timestampUtc":  "2026-06-28T01:53:52.6349333Z",
+                                                                "elapsedSeconds":  9.827,
+                                                                "from":  "FAULT",
+                                                                "to":  "RESET",
+                                                                "toCode":  6
+                                                            },
+                                                            {
+                                                                "timestampUtc":  "2026-06-28T01:53:53.3207435Z",
+                                                                "elapsedSeconds":  10.513,
+                                                                "from":  "RESET",
+                                                                "to":  "INIT",
+                                                                "toCode":  1
+                                                            },
+                                                            {
+                                                                "timestampUtc":  "2026-06-28T01:53:53.8075675Z",
+                                                                "elapsedSeconds":  11,
+                                                                "from":  "INIT",
+                                                                "to":  "MANUAL_JOG",
+                                                                "toCode":  3
+                                                            }
+                                                        ],
+                                               "axis1":  [
+                                                             {
+                                                                 "timestampUtc":  "2026-06-28T01:53:52.3967841Z",
+                                                                 "elapsedSeconds":  9.589,
+                                                                 "from":  "NOT_CAPTURED",
+                                                                 "to":  "DISCRETE_MOTION",
+                                                                 "toCode":  3
+                                                             },
+                                                             {
+                                                                 "timestampUtc":  "2026-06-28T01:53:52.5385681Z",
+                                                                 "elapsedSeconds":  9.73,
+                                                                 "from":  "DISCRETE_MOTION",
+                                                                 "to":  "STANDSTILL",
+                                                                 "toCode":  1
+                                                             },
+                                                             {
+                                                                 "timestampUtc":  "2026-06-28T01:53:52.5878219Z",
+                                                                 "elapsedSeconds":  9.78,
+                                                                 "from":  "STANDSTILL",
+                                                                 "to":  "DISABLED",
+                                                                 "toCode":  0
+                                                             },
+                                                             {
+                                                                 "timestampUtc":  "2026-06-28T01:53:52.6349333Z",
+                                                                 "elapsedSeconds":  9.827,
+                                                                 "from":  "DISABLED",
+                                                                 "to":  "STANDSTILL",
+                                                                 "toCode":  1
+                                                             }
+                                                         ],
+                                               "command":  [
+                                                               {
+                                                                   "timestampUtc":  "2026-06-28T01:53:52.3967841Z",
+                                                                   "elapsedSeconds":  9.589,
+                                                                   "from":  "NOT_CAPTURED",
+                                                                   "to":  "DONE",
+                                                                   "toCode":  3
+                                                               }
+                                                           ]
+                                           },
+                      "alarmsObserved":  {
+                                             "ids":  [
+                                                         1004
+                                                     ],
+                                             "maxActiveCount":  1,
+                                             "clearedAtEnd":  true
+                                         },
+                      "recovery":  {
+                                       "observed":  true,
+                                       "finalMode":  "MANUAL_JOG",
+                                       "finalAxisState":  "STANDSTILL",
+                                       "finalAlarmCount":  0,
+                                       "finalInMotion":  false,
+                                       "finalVelocity":  0
+                                   },
+                      "motionMetrics":  {
+                                            "startPosition":  169,
+                                            "endPosition":  180,
+                                            "minimumPosition":  169,
+                                            "maximumPosition":  180,
+                                            "travelDistance":  11,
+                                            "peakAbsoluteVelocity":  100,
+                                            "safetyStatusWords":  [
+                                                                      499
+                                                                  ]
+                                        },
+                      "runtimeRestart":  null
                   },
                   {
                       "testId":  9,
@@ -97,7 +867,108 @@
                       "resultCode":  2,
                       "expected":  "Drive fault latches axis error and recovers through RESET",
                       "actual":  "Drive fault latch and reset evaluated",
-                      "durationMs":  1540
+                      "startedUtc":  "2026-06-28T01:53:53.8991095Z",
+                      "completedUtc":  "2026-06-28T01:53:55.4282453Z",
+                      "durationMs":  1590,
+                      "sampleCount":  33,
+                      "stateTransitions":  {
+                                               "mode":  [
+                                                            {
+                                                                "timestampUtc":  "2026-06-28T01:53:53.8991095Z",
+                                                                "elapsedSeconds":  11.091,
+                                                                "from":  "NOT_CAPTURED",
+                                                                "to":  "MANUAL_JOG",
+                                                                "toCode":  3
+                                                            },
+                                                            {
+                                                                "timestampUtc":  "2026-06-28T01:53:54.0877363Z",
+                                                                "elapsedSeconds":  11.28,
+                                                                "from":  "MANUAL_JOG",
+                                                                "to":  "FAULT",
+                                                                "toCode":  5
+                                                            },
+                                                            {
+                                                                "timestampUtc":  "2026-06-28T01:53:54.1336537Z",
+                                                                "elapsedSeconds":  11.326,
+                                                                "from":  "FAULT",
+                                                                "to":  "RESET",
+                                                                "toCode":  6
+                                                            },
+                                                            {
+                                                                "timestampUtc":  "2026-06-28T01:53:54.8975717Z",
+                                                                "elapsedSeconds":  12.089,
+                                                                "from":  "RESET",
+                                                                "to":  "INIT",
+                                                                "toCode":  1
+                                                            },
+                                                            {
+                                                                "timestampUtc":  "2026-06-28T01:53:55.4282453Z",
+                                                                "elapsedSeconds":  12.62,
+                                                                "from":  "INIT",
+                                                                "to":  "MANUAL_JOG",
+                                                                "toCode":  3
+                                                            }
+                                                        ],
+                                               "axis1":  [
+                                                             {
+                                                                 "timestampUtc":  "2026-06-28T01:53:53.8991095Z",
+                                                                 "elapsedSeconds":  11.091,
+                                                                 "from":  "NOT_CAPTURED",
+                                                                 "to":  "DISCRETE_MOTION",
+                                                                 "toCode":  3
+                                                             },
+                                                             {
+                                                                 "timestampUtc":  "2026-06-28T01:53:54.0877363Z",
+                                                                 "elapsedSeconds":  11.28,
+                                                                 "from":  "DISCRETE_MOTION",
+                                                                 "to":  "ERRORSTOP",
+                                                                 "toCode":  6
+                                                             },
+                                                             {
+                                                                 "timestampUtc":  "2026-06-28T01:53:54.1336537Z",
+                                                                 "elapsedSeconds":  11.326,
+                                                                 "from":  "ERRORSTOP",
+                                                                 "to":  "STANDSTILL",
+                                                                 "toCode":  1
+                                                             }
+                                                         ],
+                                               "command":  [
+                                                               {
+                                                                   "timestampUtc":  "2026-06-28T01:53:53.8991095Z",
+                                                                   "elapsedSeconds":  11.091,
+                                                                   "from":  "NOT_CAPTURED",
+                                                                   "to":  "DONE",
+                                                                   "toCode":  3
+                                                               }
+                                                           ]
+                                           },
+                      "alarmsObserved":  {
+                                             "ids":  [
+                                                         1005
+                                                     ],
+                                             "maxActiveCount":  2,
+                                             "clearedAtEnd":  true
+                                         },
+                      "recovery":  {
+                                       "observed":  true,
+                                       "finalMode":  "MANUAL_JOG",
+                                       "finalAxisState":  "STANDSTILL",
+                                       "finalAlarmCount":  0,
+                                       "finalInMotion":  false,
+                                       "finalVelocity":  0
+                                   },
+                      "motionMetrics":  {
+                                            "startPosition":  181,
+                                            "endPosition":  199,
+                                            "minimumPosition":  181,
+                                            "maximumPosition":  199,
+                                            "travelDistance":  18,
+                                            "peakAbsoluteVelocity":  100,
+                                            "safetyStatusWords":  [
+                                                                      499
+                                                                  ]
+                                        },
+                      "runtimeRestart":  null
                   },
                   {
                       "testId":  10,
@@ -106,7 +977,115 @@
                       "resultCode":  2,
                       "expected":  "Following error is detected and recovered",
                       "actual":  "Following error latch and reset evaluated",
-                      "durationMs":  1540
+                      "startedUtc":  "2026-06-28T01:53:55.4773816Z",
+                      "completedUtc":  "2026-06-28T01:53:57.0534888Z",
+                      "durationMs":  1590,
+                      "sampleCount":  34,
+                      "stateTransitions":  {
+                                               "mode":  [
+                                                            {
+                                                                "timestampUtc":  "2026-06-28T01:53:55.4773816Z",
+                                                                "elapsedSeconds":  12.669,
+                                                                "from":  "NOT_CAPTURED",
+                                                                "to":  "MANUAL_JOG",
+                                                                "toCode":  3
+                                                            },
+                                                            {
+                                                                "timestampUtc":  "2026-06-28T01:53:55.7126950Z",
+                                                                "elapsedSeconds":  12.905,
+                                                                "from":  "MANUAL_JOG",
+                                                                "to":  "FAULT",
+                                                                "toCode":  5
+                                                            },
+                                                            {
+                                                                "timestampUtc":  "2026-06-28T01:53:55.7561991Z",
+                                                                "elapsedSeconds":  12.948,
+                                                                "from":  "FAULT",
+                                                                "to":  "RESET",
+                                                                "toCode":  6
+                                                            },
+                                                            {
+                                                                "timestampUtc":  "2026-06-28T01:53:56.5094082Z",
+                                                                "elapsedSeconds":  13.701,
+                                                                "from":  "RESET",
+                                                                "to":  "INIT",
+                                                                "toCode":  1
+                                                            },
+                                                            {
+                                                                "timestampUtc":  "2026-06-28T01:53:57.0092681Z",
+                                                                "elapsedSeconds":  14.201,
+                                                                "from":  "INIT",
+                                                                "to":  "MANUAL_JOG",
+                                                                "toCode":  3
+                                                            }
+                                                        ],
+                                               "axis1":  [
+                                                             {
+                                                                 "timestampUtc":  "2026-06-28T01:53:55.4773816Z",
+                                                                 "elapsedSeconds":  12.669,
+                                                                 "from":  "NOT_CAPTURED",
+                                                                 "to":  "STANDSTILL",
+                                                                 "toCode":  1
+                                                             },
+                                                             {
+                                                                 "timestampUtc":  "2026-06-28T01:53:55.5241273Z",
+                                                                 "elapsedSeconds":  12.716,
+                                                                 "from":  "STANDSTILL",
+                                                                 "to":  "DISCRETE_MOTION",
+                                                                 "toCode":  3
+                                                             },
+                                                             {
+                                                                 "timestampUtc":  "2026-06-28T01:53:55.7126950Z",
+                                                                 "elapsedSeconds":  12.905,
+                                                                 "from":  "DISCRETE_MOTION",
+                                                                 "to":  "ERRORSTOP",
+                                                                 "toCode":  6
+                                                             },
+                                                             {
+                                                                 "timestampUtc":  "2026-06-28T01:53:55.7561991Z",
+                                                                 "elapsedSeconds":  12.948,
+                                                                 "from":  "ERRORSTOP",
+                                                                 "to":  "STANDSTILL",
+                                                                 "toCode":  1
+                                                             }
+                                                         ],
+                                               "command":  [
+                                                               {
+                                                                   "timestampUtc":  "2026-06-28T01:53:55.4773816Z",
+                                                                   "elapsedSeconds":  12.669,
+                                                                   "from":  "NOT_CAPTURED",
+                                                                   "to":  "DONE",
+                                                                   "toCode":  3
+                                                               }
+                                                           ]
+                                           },
+                      "alarmsObserved":  {
+                                             "ids":  [
+                                                         2001
+                                                     ],
+                                             "maxActiveCount":  1,
+                                             "clearedAtEnd":  true
+                                         },
+                      "recovery":  {
+                                       "observed":  true,
+                                       "finalMode":  "MANUAL_JOG",
+                                       "finalAxisState":  "STANDSTILL",
+                                       "finalAlarmCount":  0,
+                                       "finalInMotion":  false,
+                                       "finalVelocity":  0
+                                   },
+                      "motionMetrics":  {
+                                            "startPosition":  199,
+                                            "endPosition":  180,
+                                            "minimumPosition":  180,
+                                            "maximumPosition":  199,
+                                            "travelDistance":  19,
+                                            "peakAbsoluteVelocity":  100,
+                                            "safetyStatusWords":  [
+                                                                      499
+                                                                  ]
+                                        },
+                      "runtimeRestart":  null
                   },
                   {
                       "testId":  11,
@@ -115,7 +1094,108 @@
                       "resultCode":  2,
                       "expected":  "Feedback loss is detected and recovered",
                       "actual":  "Encoder feedback loss and reset evaluated",
-                      "durationMs":  1540
+                      "startedUtc":  "2026-06-28T01:53:57.1015895Z",
+                      "completedUtc":  "2026-06-28T01:53:58.6665835Z",
+                      "durationMs":  1590,
+                      "sampleCount":  34,
+                      "stateTransitions":  {
+                                               "mode":  [
+                                                            {
+                                                                "timestampUtc":  "2026-06-28T01:53:57.1015895Z",
+                                                                "elapsedSeconds":  14.293,
+                                                                "from":  "NOT_CAPTURED",
+                                                                "to":  "MANUAL_JOG",
+                                                                "toCode":  3
+                                                            },
+                                                            {
+                                                                "timestampUtc":  "2026-06-28T01:53:57.2910493Z",
+                                                                "elapsedSeconds":  14.483,
+                                                                "from":  "MANUAL_JOG",
+                                                                "to":  "FAULT",
+                                                                "toCode":  5
+                                                            },
+                                                            {
+                                                                "timestampUtc":  "2026-06-28T01:53:57.3384321Z",
+                                                                "elapsedSeconds":  14.53,
+                                                                "from":  "FAULT",
+                                                                "to":  "RESET",
+                                                                "toCode":  6
+                                                            },
+                                                            {
+                                                                "timestampUtc":  "2026-06-28T01:53:58.1040059Z",
+                                                                "elapsedSeconds":  15.296,
+                                                                "from":  "RESET",
+                                                                "to":  "INIT",
+                                                                "toCode":  1
+                                                            },
+                                                            {
+                                                                "timestampUtc":  "2026-06-28T01:53:58.6197569Z",
+                                                                "elapsedSeconds":  15.812,
+                                                                "from":  "INIT",
+                                                                "to":  "MANUAL_JOG",
+                                                                "toCode":  3
+                                                            }
+                                                        ],
+                                               "axis1":  [
+                                                             {
+                                                                 "timestampUtc":  "2026-06-28T01:53:57.1015895Z",
+                                                                 "elapsedSeconds":  14.293,
+                                                                 "from":  "NOT_CAPTURED",
+                                                                 "to":  "DISCRETE_MOTION",
+                                                                 "toCode":  3
+                                                             },
+                                                             {
+                                                                 "timestampUtc":  "2026-06-28T01:53:57.2910493Z",
+                                                                 "elapsedSeconds":  14.483,
+                                                                 "from":  "DISCRETE_MOTION",
+                                                                 "to":  "ERRORSTOP",
+                                                                 "toCode":  6
+                                                             },
+                                                             {
+                                                                 "timestampUtc":  "2026-06-28T01:53:57.3384321Z",
+                                                                 "elapsedSeconds":  14.53,
+                                                                 "from":  "ERRORSTOP",
+                                                                 "to":  "STANDSTILL",
+                                                                 "toCode":  1
+                                                             }
+                                                         ],
+                                               "command":  [
+                                                               {
+                                                                   "timestampUtc":  "2026-06-28T01:53:57.1015895Z",
+                                                                   "elapsedSeconds":  14.293,
+                                                                   "from":  "NOT_CAPTURED",
+                                                                   "to":  "DONE",
+                                                                   "toCode":  3
+                                                               }
+                                                           ]
+                                           },
+                      "alarmsObserved":  {
+                                             "ids":  [
+                                                         1005
+                                                     ],
+                                             "maxActiveCount":  2,
+                                             "clearedAtEnd":  true
+                                         },
+                      "recovery":  {
+                                       "observed":  true,
+                                       "finalMode":  "MANUAL_JOG",
+                                       "finalAxisState":  "STANDSTILL",
+                                       "finalAlarmCount":  0,
+                                       "finalInMotion":  false,
+                                       "finalVelocity":  0
+                                   },
+                      "motionMetrics":  {
+                                            "startPosition":  179,
+                                            "endPosition":  161,
+                                            "minimumPosition":  161,
+                                            "maximumPosition":  179,
+                                            "travelDistance":  18,
+                                            "peakAbsoluteVelocity":  100,
+                                            "safetyStatusWords":  [
+                                                                      499
+                                                                  ]
+                                        },
+                      "runtimeRestart":  null
                   },
                   {
                       "testId":  12,
@@ -124,25 +1204,318 @@
                       "resultCode":  2,
                       "expected":  "Network dropout inhibits motion and recovers",
                       "actual":  "EtherCAT/network dropout and reset evaluated",
-                      "durationMs":  1440
+                      "startedUtc":  "2026-06-28T01:53:58.7104756Z",
+                      "completedUtc":  "2026-06-28T01:54:00.1196667Z",
+                      "durationMs":  1490,
+                      "sampleCount":  31,
+                      "stateTransitions":  {
+                                               "mode":  [
+                                                            {
+                                                                "timestampUtc":  "2026-06-28T01:53:58.7104756Z",
+                                                                "elapsedSeconds":  15.902,
+                                                                "from":  "NOT_CAPTURED",
+                                                                "to":  "MANUAL_JOG",
+                                                                "toCode":  3
+                                                            },
+                                                            {
+                                                                "timestampUtc":  "2026-06-28T01:53:58.9003580Z",
+                                                                "elapsedSeconds":  16.092,
+                                                                "from":  "MANUAL_JOG",
+                                                                "to":  "FAULT",
+                                                                "toCode":  5
+                                                            },
+                                                            {
+                                                                "timestampUtc":  "2026-06-28T01:53:58.9450801Z",
+                                                                "elapsedSeconds":  16.137,
+                                                                "from":  "FAULT",
+                                                                "to":  "RESET",
+                                                                "toCode":  6
+                                                            },
+                                                            {
+                                                                "timestampUtc":  "2026-06-28T01:53:59.6010626Z",
+                                                                "elapsedSeconds":  16.793,
+                                                                "from":  "RESET",
+                                                                "to":  "INIT",
+                                                                "toCode":  1
+                                                            },
+                                                            {
+                                                                "timestampUtc":  "2026-06-28T01:54:00.1196667Z",
+                                                                "elapsedSeconds":  17.312,
+                                                                "from":  "INIT",
+                                                                "to":  "MANUAL_JOG",
+                                                                "toCode":  3
+                                                            }
+                                                        ],
+                                               "axis1":  [
+                                                             {
+                                                                 "timestampUtc":  "2026-06-28T01:53:58.7104756Z",
+                                                                 "elapsedSeconds":  15.902,
+                                                                 "from":  "NOT_CAPTURED",
+                                                                 "to":  "DISCRETE_MOTION",
+                                                                 "toCode":  3
+                                                             },
+                                                             {
+                                                                 "timestampUtc":  "2026-06-28T01:53:58.9003580Z",
+                                                                 "elapsedSeconds":  16.092,
+                                                                 "from":  "DISCRETE_MOTION",
+                                                                 "to":  "STANDSTILL",
+                                                                 "toCode":  1
+                                                             }
+                                                         ],
+                                               "command":  [
+                                                               {
+                                                                   "timestampUtc":  "2026-06-28T01:53:58.7104756Z",
+                                                                   "elapsedSeconds":  15.902,
+                                                                   "from":  "NOT_CAPTURED",
+                                                                   "to":  "DONE",
+                                                                   "toCode":  3
+                                                               }
+                                                           ]
+                                           },
+                      "alarmsObserved":  {
+                                             "ids":  [
+                                                         1006
+                                                     ],
+                                             "maxActiveCount":  1,
+                                             "clearedAtEnd":  true
+                                         },
+                      "recovery":  {
+                                       "observed":  true,
+                                       "finalMode":  "MANUAL_JOG",
+                                       "finalAxisState":  "STANDSTILL",
+                                       "finalAlarmCount":  0,
+                                       "finalInMotion":  false,
+                                       "finalVelocity":  0
+                                   },
+                      "motionMetrics":  {
+                                            "startPosition":  159,
+                                            "endPosition":  142,
+                                            "minimumPosition":  142,
+                                            "maximumPosition":  159,
+                                            "travelDistance":  17,
+                                            "peakAbsoluteVelocity":  100,
+                                            "safetyStatusWords":  [
+                                                                      499
+                                                                  ]
+                                        },
+                      "runtimeRestart":  null
                   },
                   {
                       "testId":  13,
                       "name":  "TR13 Warm Restart",
                       "result":  "PASS",
                       "resultCode":  2,
-                      "expected":  "Stop/restart leaves no stale motion command",
-                      "actual":  "Warm restart/stop left axis standstill",
-                      "durationMs":  320
+                      "expected":  "ADS STOP/RUN preserves counters and safe standstill",
+                      "actual":  "Harness established safe standstill for ADS restart",
+                      "startedUtc":  "2026-06-28T01:54:00.1811770Z",
+                      "completedUtc":  "2026-06-28T01:54:00.5065147Z",
+                      "durationMs":  370,
+                      "sampleCount":  8,
+                      "stateTransitions":  {
+                                               "mode":  [
+                                                            {
+                                                                "timestampUtc":  "2026-06-28T01:54:00.1811770Z",
+                                                                "elapsedSeconds":  17.373,
+                                                                "from":  "NOT_CAPTURED",
+                                                                "to":  "MANUAL_JOG",
+                                                                "toCode":  3
+                                                            }
+                                                        ],
+                                               "axis1":  [
+                                                             {
+                                                                 "timestampUtc":  "2026-06-28T01:54:00.1811770Z",
+                                                                 "elapsedSeconds":  17.373,
+                                                                 "from":  "NOT_CAPTURED",
+                                                                 "to":  "STANDSTILL",
+                                                                 "toCode":  1
+                                                             }
+                                                         ],
+                                               "command":  [
+                                                               {
+                                                                   "timestampUtc":  "2026-06-28T01:54:00.1811770Z",
+                                                                   "elapsedSeconds":  17.373,
+                                                                   "from":  "NOT_CAPTURED",
+                                                                   "to":  "DONE",
+                                                                   "toCode":  3
+                                                               }
+                                                           ]
+                                           },
+                      "alarmsObserved":  {
+                                             "ids":  [
+
+                                                     ],
+                                             "maxActiveCount":  0,
+                                             "clearedAtEnd":  true
+                                         },
+                      "recovery":  {
+                                       "observed":  true,
+                                       "finalMode":  "MANUAL_JOG",
+                                       "finalAxisState":  "STANDSTILL",
+                                       "finalAlarmCount":  0,
+                                       "finalInMotion":  false,
+                                       "finalVelocity":  0
+                                   },
+                      "motionMetrics":  {
+                                            "startPosition":  142,
+                                            "endPosition":  142,
+                                            "minimumPosition":  142,
+                                            "maximumPosition":  142,
+                                            "travelDistance":  0,
+                                            "peakAbsoluteVelocity":  0,
+                                            "safetyStatusWords":  [
+                                                                      499
+                                                                  ]
+                                        },
+                      "runtimeRestart":  {
+                                             "type":  "warm",
+                                             "controlSequence":  "ADS Stop -\u003e ADS Run",
+                                             "requestedUtc":  "2026-06-28T01:54:03.5631103Z",
+                                             "stoppedState":  "Stop",
+                                             "resumedState":  "Run",
+                                             "passed":  true,
+                                             "acceptance":  "Counters preserved; no stale motion after resume",
+                                             "before":  {
+                                                            "timestampUtc":  "2026-06-28T01:54:03.5378246Z",
+                                                            "adsState":  "Run",
+                                                            "simulationMode":  true,
+                                                            "simulationRunning":  false,
+                                                            "simulationComplete":  true,
+                                                            "testsRun":  16,
+                                                            "testsPassed":  16,
+                                                            "testsFailed":  0,
+                                                            "modeCode":  0,
+                                                            "mode":  "OFF",
+                                                            "axisStateCode":  0,
+                                                            "axisState":  "DISABLED",
+                                                            "inMotion":  false,
+                                                            "axisError":  false,
+                                                            "axisErrorCode":  0,
+                                                            "activeAlarmCount":  1,
+                                                            "primaryAlarmId":  5001,
+                                                            "position":  142,
+                                                            "velocity":  0
+                                                        },
+                                             "after":  {
+                                                           "timestampUtc":  "2026-06-28T01:54:04.0684950Z",
+                                                           "adsState":  "Run",
+                                                           "simulationMode":  true,
+                                                           "simulationRunning":  false,
+                                                           "simulationComplete":  true,
+                                                           "testsRun":  16,
+                                                           "testsPassed":  16,
+                                                           "testsFailed":  0,
+                                                           "modeCode":  0,
+                                                           "mode":  "OFF",
+                                                           "axisStateCode":  0,
+                                                           "axisState":  "DISABLED",
+                                                           "inMotion":  false,
+                                                           "axisError":  false,
+                                                           "axisErrorCode":  0,
+                                                           "activeAlarmCount":  1,
+                                                           "primaryAlarmId":  5001,
+                                                           "position":  142,
+                                                           "velocity":  0
+                                                       },
+                                             "error":  null
+                                         }
                   },
                   {
                       "testId":  14,
                       "name":  "TR14 Cold Restart Defaults",
                       "result":  "PASS",
                       "resultCode":  2,
-                      "expected":  "Virtual safe defaults are restored",
-                      "actual":  "Virtual cold-start safe defaults evaluated",
-                      "durationMs":  320
+                      "expected":  "ADS RESET/RUN restores initialized safe defaults",
+                      "actual":  "Harness established safe defaults for ADS reset",
+                      "startedUtc":  "2026-06-28T01:54:00.5555769Z",
+                      "completedUtc":  "2026-06-28T01:54:00.8839499Z",
+                      "durationMs":  370,
+                      "sampleCount":  8,
+                      "stateTransitions":  {
+                                               "mode":  [
+                                                            {
+                                                                "timestampUtc":  "2026-06-28T01:54:00.5555769Z",
+                                                                "elapsedSeconds":  17.748,
+                                                                "from":  "NOT_CAPTURED",
+                                                                "to":  "MANUAL_JOG",
+                                                                "toCode":  3
+                                                            }
+                                                        ],
+                                               "axis1":  [
+                                                             {
+                                                                 "timestampUtc":  "2026-06-28T01:54:00.5555769Z",
+                                                                 "elapsedSeconds":  17.748,
+                                                                 "from":  "NOT_CAPTURED",
+                                                                 "to":  "STANDSTILL",
+                                                                 "toCode":  1
+                                                             }
+                                                         ],
+                                               "command":  [
+                                                               {
+                                                                   "timestampUtc":  "2026-06-28T01:54:00.5555769Z",
+                                                                   "elapsedSeconds":  17.748,
+                                                                   "from":  "NOT_CAPTURED",
+                                                                   "to":  "DONE",
+                                                                   "toCode":  3
+                                                               }
+                                                           ]
+                                           },
+                      "alarmsObserved":  {
+                                             "ids":  [
+
+                                                     ],
+                                             "maxActiveCount":  0,
+                                             "clearedAtEnd":  true
+                                         },
+                      "recovery":  {
+                                       "observed":  true,
+                                       "finalMode":  "MANUAL_JOG",
+                                       "finalAxisState":  "STANDSTILL",
+                                       "finalAlarmCount":  0,
+                                       "finalInMotion":  false,
+                                       "finalVelocity":  0
+                                   },
+                      "motionMetrics":  {
+                                            "startPosition":  142,
+                                            "endPosition":  142,
+                                            "minimumPosition":  142,
+                                            "maximumPosition":  142,
+                                            "travelDistance":  0,
+                                            "peakAbsoluteVelocity":  0,
+                                            "safetyStatusWords":  [
+                                                                      499
+                                                                  ]
+                                        },
+                      "runtimeRestart":  {
+                                             "type":  "cold",
+                                             "controlSequence":  "ADS Reset -\u003e ADS Run",
+                                             "requestedUtc":  "2026-06-28T01:54:04.1453394Z",
+                                             "resetState":  "Stop",
+                                             "resumedState":  "Run",
+                                             "passed":  true,
+                                             "acceptance":  "Initialized counters, alarms and motion state restored",
+                                             "after":  {
+                                                           "timestampUtc":  "2026-06-28T01:54:05.1740795Z",
+                                                           "adsState":  "Run",
+                                                           "simulationMode":  true,
+                                                           "simulationRunning":  false,
+                                                           "simulationComplete":  false,
+                                                           "testsRun":  0,
+                                                           "testsPassed":  0,
+                                                           "testsFailed":  0,
+                                                           "modeCode":  0,
+                                                           "mode":  "OFF",
+                                                           "axisStateCode":  0,
+                                                           "axisState":  "DISABLED",
+                                                           "inMotion":  false,
+                                                           "axisError":  false,
+                                                           "axisErrorCode":  0,
+                                                           "activeAlarmCount":  0,
+                                                           "primaryAlarmId":  0,
+                                                           "position":  0,
+                                                           "velocity":  0
+                                                       },
+                                             "error":  null
+                                         }
                   },
                   {
                       "testId":  15,
@@ -151,7 +1524,94 @@
                       "resultCode":  2,
                       "expected":  "Watchdog loss enters FAULT and recovers",
                       "actual":  "Watchdog timeout FAULT and recovery evaluated",
-                      "durationMs":  1340
+                      "startedUtc":  "2026-06-28T01:54:00.9306897Z",
+                      "completedUtc":  "2026-06-28T01:54:02.2890019Z",
+                      "durationMs":  1390,
+                      "sampleCount":  29,
+                      "stateTransitions":  {
+                                               "mode":  [
+                                                            {
+                                                                "timestampUtc":  "2026-06-28T01:54:00.9306897Z",
+                                                                "elapsedSeconds":  18.123,
+                                                                "from":  "NOT_CAPTURED",
+                                                                "to":  "MANUAL_JOG",
+                                                                "toCode":  3
+                                                            },
+                                                            {
+                                                                "timestampUtc":  "2026-06-28T01:54:00.9761427Z",
+                                                                "elapsedSeconds":  18.168,
+                                                                "from":  "MANUAL_JOG",
+                                                                "to":  "FAULT",
+                                                                "toCode":  5
+                                                            },
+                                                            {
+                                                                "timestampUtc":  "2026-06-28T01:54:01.0230665Z",
+                                                                "elapsedSeconds":  18.215,
+                                                                "from":  "FAULT",
+                                                                "to":  "RESET",
+                                                                "toCode":  6
+                                                            },
+                                                            {
+                                                                "timestampUtc":  "2026-06-28T01:54:01.7721045Z",
+                                                                "elapsedSeconds":  18.964,
+                                                                "from":  "RESET",
+                                                                "to":  "INIT",
+                                                                "toCode":  1
+                                                            },
+                                                            {
+                                                                "timestampUtc":  "2026-06-28T01:54:02.2890019Z",
+                                                                "elapsedSeconds":  19.481,
+                                                                "from":  "INIT",
+                                                                "to":  "MANUAL_JOG",
+                                                                "toCode":  3
+                                                            }
+                                                        ],
+                                               "axis1":  [
+                                                             {
+                                                                 "timestampUtc":  "2026-06-28T01:54:00.9306897Z",
+                                                                 "elapsedSeconds":  18.123,
+                                                                 "from":  "NOT_CAPTURED",
+                                                                 "to":  "STANDSTILL",
+                                                                 "toCode":  1
+                                                             }
+                                                         ],
+                                               "command":  [
+                                                               {
+                                                                   "timestampUtc":  "2026-06-28T01:54:00.9306897Z",
+                                                                   "elapsedSeconds":  18.123,
+                                                                   "from":  "NOT_CAPTURED",
+                                                                   "to":  "DONE",
+                                                                   "toCode":  3
+                                                               }
+                                                           ]
+                                           },
+                      "alarmsObserved":  {
+                                             "ids":  [
+                                                         1007
+                                                     ],
+                                             "maxActiveCount":  1,
+                                             "clearedAtEnd":  true
+                                         },
+                      "recovery":  {
+                                       "observed":  true,
+                                       "finalMode":  "MANUAL_JOG",
+                                       "finalAxisState":  "STANDSTILL",
+                                       "finalAlarmCount":  0,
+                                       "finalInMotion":  false,
+                                       "finalVelocity":  0
+                                   },
+                      "motionMetrics":  {
+                                            "startPosition":  142,
+                                            "endPosition":  142,
+                                            "minimumPosition":  142,
+                                            "maximumPosition":  142,
+                                            "travelDistance":  0,
+                                            "peakAbsoluteVelocity":  0,
+                                            "safetyStatusWords":  [
+                                                                      499
+                                                                  ]
+                                        },
+                      "runtimeRestart":  null
                   },
                   {
                       "testId":  16,
@@ -160,7 +1620,87 @@
                       "resultCode":  2,
                       "expected":  "Move command in OFF is rejected without motion",
                       "actual":  "Invalid OFF-state move rejection evaluated",
-                      "durationMs":  620
+                      "startedUtc":  "2026-06-28T01:54:02.3374105Z",
+                      "completedUtc":  "2026-06-28T01:54:03.0230778Z",
+                      "durationMs":  670,
+                      "sampleCount":  15,
+                      "stateTransitions":  {
+                                               "mode":  [
+                                                            {
+                                                                "timestampUtc":  "2026-06-28T01:54:02.3374105Z",
+                                                                "elapsedSeconds":  19.529,
+                                                                "from":  "NOT_CAPTURED",
+                                                                "to":  "MANUAL_JOG",
+                                                                "toCode":  3
+                                                            },
+                                                            {
+                                                                "timestampUtc":  "2026-06-28T01:54:02.3968393Z",
+                                                                "elapsedSeconds":  19.589,
+                                                                "from":  "MANUAL_JOG",
+                                                                "to":  "OFF",
+                                                                "toCode":  0
+                                                            }
+                                                        ],
+                                               "axis1":  [
+                                                             {
+                                                                 "timestampUtc":  "2026-06-28T01:54:02.3374105Z",
+                                                                 "elapsedSeconds":  19.529,
+                                                                 "from":  "NOT_CAPTURED",
+                                                                 "to":  "STANDSTILL",
+                                                                 "toCode":  1
+                                                             },
+                                                             {
+                                                                 "timestampUtc":  "2026-06-28T01:54:02.3968393Z",
+                                                                 "elapsedSeconds":  19.589,
+                                                                 "from":  "STANDSTILL",
+                                                                 "to":  "DISABLED",
+                                                                 "toCode":  0
+                                                             }
+                                                         ],
+                                               "command":  [
+                                                               {
+                                                                   "timestampUtc":  "2026-06-28T01:54:02.3374105Z",
+                                                                   "elapsedSeconds":  19.529,
+                                                                   "from":  "NOT_CAPTURED",
+                                                                   "to":  "DONE",
+                                                                   "toCode":  3
+                                                               },
+                                                               {
+                                                                   "timestampUtc":  "2026-06-28T01:54:02.6795662Z",
+                                                                   "elapsedSeconds":  19.871,
+                                                                   "from":  "DONE",
+                                                                   "to":  "ERROR",
+                                                                   "toCode":  4
+                                                               }
+                                                           ]
+                                           },
+                      "alarmsObserved":  {
+                                             "ids":  [
+                                                         5001
+                                                     ],
+                                             "maxActiveCount":  1,
+                                             "clearedAtEnd":  false
+                                         },
+                      "recovery":  {
+                                       "observed":  true,
+                                       "finalMode":  "OFF",
+                                       "finalAxisState":  "DISABLED",
+                                       "finalAlarmCount":  1,
+                                       "finalInMotion":  false,
+                                       "finalVelocity":  0
+                                   },
+                      "motionMetrics":  {
+                                            "startPosition":  142,
+                                            "endPosition":  142,
+                                            "minimumPosition":  142,
+                                            "maximumPosition":  142,
+                                            "travelDistance":  0,
+                                            "peakAbsoluteVelocity":  0,
+                                            "safetyStatusWords":  [
+                                                                      499
+                                                                  ]
+                                        },
+                      "runtimeRestart":  null
                   }
               ]
 }

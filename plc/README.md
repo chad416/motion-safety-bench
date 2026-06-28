@@ -8,7 +8,7 @@ The `plc/` directory is the reviewed source of truth. Each function block has an
 | `Structures.st` | Configuration, status, command, alarm, trace, HMI and test structures |
 | `GVL_Constants.st` | Fixed capacities and axis count |
 | `GVL_VirtualIO.st` | Simulation I/O image |
-| `GVL_IO.st` | The only physical `%I/%Q` mapping |
+| `GVL_IO.st` | Unlocated physical I/O symbols for TwinCAT channel linking |
 | `ConfigPackage.st` | Defaults and validation |
 | `SafetyManager.st` | Input selection and safety permits |
 | `AlarmManager.st` | Alarm lifecycle/history projection |
@@ -38,7 +38,7 @@ This produces native objects under `twincat/RuntimeSimulation/`. Generated IDs a
 
 ## Simulation and hardware modes
 
-`FB_ConfigPackage.stMachineConfig.bSimulationMode = TRUE` selects the software plant and virtual I/O. Set it to `FALSE` only after linking `axis1Ref`/`axis2Ref`, verifying I/O polarity and completing the hardware commissioning entry gates.
+`FB_ConfigPackage.stMachineConfig.bSimulationMode = TRUE` selects the software plant and virtual I/O. Set it to `FALSE` only after linking `axis1Ref`/`axis2Ref`, linking each EtherCAT channel to the symbolic `GVL_IO` variable, verifying I/O polarity and completing the hardware commissioning entry gates. No fixed `%I/%Q` process-image address is permitted in reusable source.
 
 ## Safety statement
 

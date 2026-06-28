@@ -15,7 +15,7 @@ This SDS defines the implemented module boundaries, cyclic data flow, state mach
 - One owner for each responsibility and state machine.
 - Safety loss has priority over ordinary commands.
 - HMI/TestHarness use the same validated command path.
-- Physical `%I/%Q` addresses exist only in `GVL_IO`.
+- Physical I/O is exposed through unlocated `GVL_IO` symbols and linked to EtherCAT channels in TwinCAT; reusable source contains no fixed `%I/%Q` addresses.
 - Simulation and hardware paths share status/command structures.
 - Bounded arrays and ring buffers; no dynamic allocation.
 - Generated TwinCAT IDs are deterministic and reviewable.

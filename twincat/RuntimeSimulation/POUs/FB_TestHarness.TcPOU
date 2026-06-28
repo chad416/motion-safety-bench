@@ -33,6 +33,7 @@ VAR
     bRunSuite : BOOL;
     bVerificationPassed : BOOL;
     bFaultObserved : BOOL;
+    nVerifyDwellCycles : UDINT;
     fInitialPosition : LREAL;
     fExpectedPosition : LREAL;
     fPeakPosition : LREAL;
@@ -106,6 +107,7 @@ ELSE
                 fLowPosition := fInitialPosition;
                 bVerificationPassed := FALSE;
                 bFaultObserved := FALSE;
+                nVerifyDwellCycles := 0;
 
                 CASE nCurrentTestID OF
                     1:
@@ -147,10 +149,10 @@ ELSE
                         sExpected := 'Network dropout inhibits motion and recovers';
                     13:
                         sTestName := 'TR13 Warm Restart';
-                        sExpected := 'Stop/restart leaves no stale motion command';
+                        sExpected := 'ADS STOP/RUN preserves counters and safe standstill';
                     14:
                         sTestName := 'TR14 Cold Restart Defaults';
-                        sExpected := 'Virtual safe defaults are restored';
+                        sExpected := 'ADS RESET/RUN restores initialized safe defaults';
                     15:
                         sTestName := 'TR15 Watchdog Timeout';
                         sExpected := 'Watchdog loss enters FAULT and recovers';
@@ -622,91 +624,95 @@ ELSE
                 END_IF
 
             TEST_VERIFY:
-                CASE nCurrentTestID OF
-                    1:
-                        bVerificationPassed := (eCurrentMode = MODE_MANUAL_JOG) AND
-                            astAxisStatus[1].bHomed AND astAxisStatus[2].bHomed;
-                        sActual := 'Startup, homing and MANUAL-ready state evaluated';
-                    2:
-                        bVerificationPassed :=
-                            ABS(astAxisStatus[1].fActualPosition - 100.0) <= 0.1;
-                        sActual := 'Absolute position tolerance evaluated';
-                    3:
-                        bVerificationPassed :=
-                            ABS(astAxisStatus[1].fActualPosition - fExpectedPosition) <= 0.1;
-                        sActual := 'Relative position tolerance evaluated';
-                    4:
-                        bVerificationPassed := (fPeakPosition > fInitialPosition) AND
-                            (fLowPosition < fPeakPosition) AND
-                            (NOT astAxisStatus[1].bInMotion);
-                        sActual := 'Bidirectional jog displacement and standstill evaluated';
-                    5:
-                        bVerificationPassed := bFaultObserved AND
-                            (eCurrentMode = MODE_MANUAL_JOG) AND stSafetyStatus.bSafeToRun;
-                        sActual := 'Positive limit FAULT and recovery evaluated';
-                    6:
-                        bVerificationPassed := bFaultObserved AND
-                            (eCurrentMode = MODE_MANUAL_JOG) AND stSafetyStatus.bSafeToRun;
-                        sActual := 'Negative limit FAULT and recovery evaluated';
-                    7:
-                        bVerificationPassed := bFaultObserved AND
-                            (eCurrentMode = MODE_MANUAL_JOG) AND stSafetyStatus.bSafeToRun;
-                        sActual := 'E-stop FAULT and recovery evaluated';
-                    8:
-                        bVerificationPassed := bFaultObserved AND
-                            (eCurrentMode = MODE_MANUAL_JOG) AND stSafetyStatus.bSafeToRun;
-                        sActual := 'Guard door FAULT and recovery evaluated';
-                    9:
-                        bVerificationPassed := bFaultObserved AND
-                            (eCurrentMode = MODE_MANUAL_JOG) AND
-                            (NOT astAxisStatus[1].bError);
-                        sActual := 'Drive fault latch and reset evaluated';
-                    10:
-                        bVerificationPassed := bFaultObserved AND
-                            (eCurrentMode = MODE_MANUAL_JOG) AND
-                            (NOT astAxisStatus[1].bError);
-                        sActual := 'Following error latch and reset evaluated';
-                    11:
-                        bVerificationPassed := bFaultObserved AND
-                            (eCurrentMode = MODE_MANUAL_JOG) AND
-                            astAxisStatus[1].bFeedbackHealthy;
-                        sActual := 'Encoder feedback loss and reset evaluated';
-                    12:
-                        bVerificationPassed := bFaultObserved AND
-                            (eCurrentMode = MODE_MANUAL_JOG) AND
-                            stSafetyStatus.bNetworkHealthy;
-                        sActual := 'EtherCAT/network dropout and reset evaluated';
-                    13:
-                        bVerificationPassed := NOT astAxisStatus[1].bInMotion;
-                        sActual := 'Warm restart/stop left axis standstill';
-                    14:
-                        bVerificationPassed := GVL_VirtualIO.stVirtualIO.bEStop AND
-                            GVL_VirtualIO.stVirtualIO.bSafetyRelayFB AND
-                            GVL_VirtualIO.stVirtualIO.bGuardDoorClosed AND
-                            GVL_VirtualIO.stVirtualIO.bSTOHealthy AND
-                            GVL_VirtualIO.stVirtualIO.bEtherCATOK AND
-                            GVL_VirtualIO.stVirtualIO.bWatchdogOK AND
-                            GVL_VirtualIO.stVirtualIO.abDriveReady[1] AND
-                            (NOT GVL_VirtualIO.stVirtualIO.abDriveFault[1]) AND
-                            GVL_VirtualIO.stVirtualIO.abEncoderHealthy[1];
-                        sActual := 'Virtual cold-start safe defaults evaluated';
-                    15:
-                        bVerificationPassed := bFaultObserved AND
-                            (eCurrentMode = MODE_MANUAL_JOG) AND
-                            stSafetyStatus.bWatchdogHealthy;
-                        sActual := 'Watchdog timeout FAULT and recovery evaluated';
-                    16:
-                        bVerificationPassed := (NOT astAxisStatus[1].bInMotion) AND
-                            (nActiveAlarmCount > 0);
-                        sActual := 'Invalid OFF-state move rejection evaluated';
-                END_CASE
-
-                IF bVerificationPassed THEN
-                    stTestResult.eResult := TRES_PASS;
+                IF nVerifyDwellCycles < 5 THEN
+                    nVerifyDwellCycles := nVerifyDwellCycles + 1;
                 ELSE
-                    stTestResult.eResult := TRES_FAIL;
+                    CASE nCurrentTestID OF
+                        1:
+                            bVerificationPassed := (eCurrentMode = MODE_MANUAL_JOG) AND
+                                astAxisStatus[1].bHomed AND astAxisStatus[2].bHomed;
+                            sActual := 'Startup, homing and MANUAL-ready state evaluated';
+                        2:
+                            bVerificationPassed :=
+                                ABS(astAxisStatus[1].fActualPosition - 100.0) <= 0.1;
+                            sActual := 'Absolute position tolerance evaluated';
+                        3:
+                            bVerificationPassed :=
+                                ABS(astAxisStatus[1].fActualPosition - fExpectedPosition) <= 0.1;
+                            sActual := 'Relative position tolerance evaluated';
+                        4:
+                            bVerificationPassed := (fPeakPosition > fInitialPosition) AND
+                                (fLowPosition < fPeakPosition) AND
+                                (NOT astAxisStatus[1].bInMotion);
+                            sActual := 'Bidirectional jog displacement and standstill evaluated';
+                        5:
+                            bVerificationPassed := bFaultObserved AND
+                                (eCurrentMode = MODE_MANUAL_JOG) AND stSafetyStatus.bSafeToRun;
+                            sActual := 'Positive limit FAULT and recovery evaluated';
+                        6:
+                            bVerificationPassed := bFaultObserved AND
+                                (eCurrentMode = MODE_MANUAL_JOG) AND stSafetyStatus.bSafeToRun;
+                            sActual := 'Negative limit FAULT and recovery evaluated';
+                        7:
+                            bVerificationPassed := bFaultObserved AND
+                                (eCurrentMode = MODE_MANUAL_JOG) AND stSafetyStatus.bSafeToRun;
+                            sActual := 'E-stop FAULT and recovery evaluated';
+                        8:
+                            bVerificationPassed := bFaultObserved AND
+                                (eCurrentMode = MODE_MANUAL_JOG) AND stSafetyStatus.bSafeToRun;
+                            sActual := 'Guard door FAULT and recovery evaluated';
+                        9:
+                            bVerificationPassed := bFaultObserved AND
+                                (eCurrentMode = MODE_MANUAL_JOG) AND
+                                (NOT astAxisStatus[1].bError);
+                            sActual := 'Drive fault latch and reset evaluated';
+                        10:
+                            bVerificationPassed := bFaultObserved AND
+                                (eCurrentMode = MODE_MANUAL_JOG) AND
+                                (NOT astAxisStatus[1].bError);
+                            sActual := 'Following error latch and reset evaluated';
+                        11:
+                            bVerificationPassed := bFaultObserved AND
+                                (eCurrentMode = MODE_MANUAL_JOG) AND
+                                astAxisStatus[1].bFeedbackHealthy;
+                            sActual := 'Encoder feedback loss and reset evaluated';
+                        12:
+                            bVerificationPassed := bFaultObserved AND
+                                (eCurrentMode = MODE_MANUAL_JOG) AND
+                                stSafetyStatus.bNetworkHealthy;
+                            sActual := 'EtherCAT/network dropout and reset evaluated';
+                        13:
+                            bVerificationPassed := NOT astAxisStatus[1].bInMotion;
+                            sActual := 'Harness established safe standstill for ADS restart';
+                        14:
+                            bVerificationPassed := GVL_VirtualIO.stVirtualIO.bEStop AND
+                                GVL_VirtualIO.stVirtualIO.bSafetyRelayFB AND
+                                GVL_VirtualIO.stVirtualIO.bGuardDoorClosed AND
+                                GVL_VirtualIO.stVirtualIO.bSTOHealthy AND
+                                GVL_VirtualIO.stVirtualIO.bEtherCATOK AND
+                                GVL_VirtualIO.stVirtualIO.bWatchdogOK AND
+                                GVL_VirtualIO.stVirtualIO.abDriveReady[1] AND
+                                (NOT GVL_VirtualIO.stVirtualIO.abDriveFault[1]) AND
+                                GVL_VirtualIO.stVirtualIO.abEncoderHealthy[1];
+                            sActual := 'Harness established safe defaults for ADS reset';
+                        15:
+                            bVerificationPassed := bFaultObserved AND
+                                (eCurrentMode = MODE_MANUAL_JOG) AND
+                                stSafetyStatus.bWatchdogHealthy;
+                            sActual := 'Watchdog timeout FAULT and recovery evaluated';
+                        16:
+                            bVerificationPassed := (NOT astAxisStatus[1].bInMotion) AND
+                                (nActiveAlarmCount > 0);
+                            sActual := 'Invalid OFF-state move rejection evaluated';
+                    END_CASE
+
+                    IF bVerificationPassed THEN
+                        stTestResult.eResult := TRES_PASS;
+                    ELSE
+                        stTestResult.eResult := TRES_FAIL;
+                    END_IF
+                    eTestPhase := TEST_TEARDOWN;
                 END_IF
-                eTestPhase := TEST_TEARDOWN;
 
             TEST_TEARDOWN:
                 stTestResult.sActual := sActual;

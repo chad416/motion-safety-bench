@@ -1,6 +1,6 @@
 # Software and Bench FMEA
 
-**Revision:** 1.0 — 2026-06-21
+**Revision:** 1.1 — 2026-06-27
 **Method:** Severity (S), occurrence (O), detection (D), each 1–10. `RPN = S × O × D`.
 
 | Failure mode | Effect | Existing control | S | O | D | RPN | Required action |
@@ -26,6 +26,10 @@
 | Following error exceeds limit | Servo cannot follow command | Following-error status, alarm 2001, fault/reset sequence | 8 | 3 | 2 | 48 | TR10 plus servo tuning review |
 | EtherCAT/network dropout | Lost I/O or drive communication | Network healthy bit, alarm 1006, motion inhibit | 9 | 3 | 2 | 54 | TR12 plus cable pull SAT |
 | PLC watchdog timeout | Runtime no longer deterministic | Watchdog healthy bit, alarm 1007, motion inhibit | 9 | 2 | 2 | 36 | TR15 plus cycle-time monitoring |
+| Control power loss | PLC, I/O and drive control become unavailable; axis may coast unless the drive safety design removes torque safely | De-energize-to-safe outputs, external STO/safety relay, boot defaults with motion disabled | 10 | 3 | 3 | 90 | Phase 2 power-interruption SAT; verify safe stop category and restart inhibit |
+| General sensor feedback loss or stuck state | Sequence may use stale or impossible process information | Plausibility checks, NC safety contacts, stuck-sensor timeout and explicit healthy bits | 8 | 3 | 3 | 72 | Inject open-circuit and stuck-high/stuck-low states; confirm alarm and motion inhibit |
+| Limit switch fails to open or is bypassed | End-of-travel demand is not detected and mechanical overtravel is possible | Independent software limits, opposite-direction recovery only, mechanical end stop and Phase 2 safety review | 10 | 2 | 5 | 100 | SAT proof test each limit, wire-break detection and independent overtravel protection |
+| Drive fault or drive-not-ready state | Torque or position control is unavailable; commanded motion cannot be trusted | Drive-ready permissive, drive-fault latch, alarm 2001, immediate motion inhibit and reset-required recovery | 9 | 3 | 2 | 54 | TR09 plus Phase 2 drive fault injection and diagnostic-code verification |
 
 ## Priority actions
 

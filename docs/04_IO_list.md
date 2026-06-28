@@ -81,7 +81,7 @@ These symbols were added for the expanded 16-scenario software FAT. They remain 
 | EtherCAT/network dropout | `GVL_VirtualIO.stVirtualIO.bEtherCATOK` | FALSE | TRUE |
 | Watchdog timeout | `GVL_VirtualIO.stVirtualIO.bWatchdogOK` | FALSE | TRUE |
 
-Future physical mapping is isolated in `plc/GVL_IO.st` and must be verified during SAT before drive enable is allowed.
+Future physical signals are declared as unlocated symbols in `plc/GVL_IO.st`. EtherCAT channels must be linked to those symbols in the TwinCAT I/O mapping and verified during SAT before drive enable is allowed. Fixed `%I/%Q` process-image addresses are prohibited.
 
 ---
 

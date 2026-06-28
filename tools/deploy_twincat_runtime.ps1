@@ -5,6 +5,8 @@ param(
     [string] $SolutionRelativePath = 'twincat\MotionSafetyBenchRuntime.sln',
     [string] $PlcContainerPath = 'TIPC^MotionSafetyBenchPLC',
     [string] $PlcIecProjectPath = 'TIPC^MotionSafetyBenchPLC^MotionSafetyBenchPLC Project',
+    [string] $Configuration = 'Release',
+    [string] $Platform = 'TwinCAT RT (x64)',
     [switch] $SkipBuild
 )
 
@@ -25,7 +27,9 @@ if ([Environment]::Is64BitProcess) {
         '-Action', $Action,
         '-SolutionRelativePath', $SolutionRelativePath,
         '-PlcContainerPath', $PlcContainerPath,
-        '-PlcIecProjectPath', $PlcIecProjectPath
+        '-PlcIecProjectPath', $PlcIecProjectPath,
+        '-Configuration', $Configuration,
+        '-Platform', $Platform
     )
     if ($SkipBuild) {
         $arguments32 += '-SkipBuild'
@@ -180,6 +184,113 @@ function Show-TwinCATTree {
     }
 }
 
+function Set-SolutionBuildConfiguration {
+    param(
+        [Parameter(Mandatory = $true)]
+        $Dte,
+        [Parameter(Mandatory = $true)]
+        [string] $Configuration,
+        [Parameter(Mandatory = $true)]
+        [string] $Platform
+    )
+
+    $build = Invoke-ComWithRetry { $Dte.Solution.SolutionBuild }
+    $solutionConfigurations = Invoke-ComWithRetry {
+        $build.SolutionConfigurations
+    }
+    $configurationCount = Invoke-ComWithRetry {
+        $solutionConfigurations.Count
+    }
+
+    $availableConfigurations = New-Object System.Collections.Generic.List[string]
+    for ($index = 1; $index -le $configurationCount; $index++) {
+        $solutionConfiguration = Invoke-ComWithRetry {
+            $solutionConfigurations.Item($index)
+        }
+        $name = Invoke-ComWithRetry { $solutionConfiguration.Name }
+        $platformName = Invoke-ComWithRetry {
+            $solutionConfiguration.PlatformName
+        }
+        $availableConfigurations.Add("$name|$platformName")
+
+        if (($name -eq $Configuration) -and ($platformName -eq $Platform)) {
+            Invoke-ComWithRetry { $solutionConfiguration.Activate() }
+            Write-Output "Active build configuration: $Configuration|$Platform"
+            return
+        }
+    }
+
+    throw "Solution configuration '$Configuration|$Platform' was not found. " +
+        "Available configurations: $($availableConfigurations -join ', ')"
+}
+
+function Assert-TmcTargetPlatform {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string] $RepositoryRoot,
+        [Parameter(Mandatory = $true)]
+        [string] $ExpectedPlatform
+    )
+
+    $tmcPath = Join-Path $RepositoryRoot `
+        'twincat\RuntimeSimulation\MotionSafetyBenchPLC.tmc'
+    if (-not (Test-Path -LiteralPath $tmcPath)) {
+        throw "Generated TMC file was not found: $tmcPath"
+    }
+
+    $tmcText = Get-Content -LiteralPath $tmcPath -Raw
+    $expectedMarker = 'TargetPlatform="' + $ExpectedPlatform + '"'
+    if ($tmcText -notlike "*$expectedMarker*") {
+        $actualTarget = if ($tmcText -match 'TargetPlatform="([^"]+)"') {
+            $Matches[1]
+        }
+        else {
+            'not present'
+        }
+
+        throw "Generated PLC TMC target platform is '$actualTarget', " +
+            "expected '$ExpectedPlatform'. Select the correct TwinCAT " +
+            "runtime platform before deployment."
+    }
+
+    Write-Output "Verified generated TMC target platform: $ExpectedPlatform"
+}
+
+function Set-RuntimeSystemSymbolicMappingDisabled {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string] $RepositoryRoot
+    )
+
+    $runtimeSystemPath = Join-Path $RepositoryRoot `
+        'twincat\RuntimeSystem\MotionSafetyBench.tsproj'
+    if (-not (Test-Path -LiteralPath $runtimeSystemPath)) {
+        throw "TwinCAT runtime system project was not found: $runtimeSystemPath"
+    }
+
+    $runtimeSystemText = Get-Content -LiteralPath $runtimeSystemPath -Raw
+    if ($runtimeSystemText -match 'SymbolicMapping="false"') {
+        Write-Output 'Runtime system symbolic mapping guard is already present.'
+        return
+    }
+
+    $updatedRuntimeSystemText = [regex]::Replace(
+        $runtimeSystemText,
+        '(<Instance\s+Id="#x08502040"(?:(?!>).)*?)(\s+TmcPath=)',
+        '$1 SymbolicMapping="false"$2',
+        1
+    )
+
+    if ($updatedRuntimeSystemText -eq $runtimeSystemText) {
+        throw 'Unable to insert SymbolicMapping="false" into the PLC instance.'
+    }
+
+    Set-Content -LiteralPath $runtimeSystemPath `
+        -Value $updatedRuntimeSystemText `
+        -Encoding UTF8
+    Write-Output 'Runtime system symbolic mapping guard inserted.'
+}
+
 Start-Transcript -LiteralPath $logPath -Force
 $dte = $null
 
@@ -190,6 +301,10 @@ try {
     Invoke-ComWithRetry { $dte.MainWindow.Visible = $false }
     Invoke-ComWithRetry { $dte.Solution.Open($solutionPath) }
     Start-Sleep -Seconds 5
+    Set-SolutionBuildConfiguration `
+        -Dte $dte `
+        -Configuration $Configuration `
+        -Platform $Platform
 
     $systemProject = Invoke-ComWithRetry { $dte.Solution.Projects.Item(1) }
     $sysManager = Invoke-ComWithRetry { $systemProject.Object }
@@ -223,6 +338,9 @@ try {
                 throw "TwinCAT runtime build failed with $($build.LastBuildInfo) project error(s)."
             }
             Write-Output 'Runtime build completed with zero project errors.'
+            Assert-TmcTargetPlatform `
+                -RepositoryRoot $RepositoryRoot `
+                -ExpectedPlatform $Platform
         }
         else {
             Write-Output 'Runtime build skipped by explicit request.'
@@ -258,6 +376,7 @@ finally {
             Write-Warning "Unable to close TwinCAT XAE cleanly: $($_.Exception.Message)"
         }
     }
+    Set-RuntimeSystemSymbolicMappingDisabled -RepositoryRoot $RepositoryRoot
     [OleMessageFilter]::Revoke()
     Stop-Transcript
 }

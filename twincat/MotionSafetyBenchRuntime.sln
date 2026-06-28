@@ -7,17 +7,27 @@ EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|TwinCAT RT (x64) = Debug|TwinCAT RT (x64)
+		Debug|TwinCAT RT (x86) = Debug|TwinCAT RT (x86)
 		Release|TwinCAT RT (x64) = Release|TwinCAT RT (x64)
+		Release|TwinCAT RT (x86) = Release|TwinCAT RT (x86)
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{40D9ED99-C0A3-4788-8EBF-7D990A10FC85}.Debug|TwinCAT RT (x64).ActiveCfg = Debug|TwinCAT RT (x64)
 		{40D9ED99-C0A3-4788-8EBF-7D990A10FC85}.Debug|TwinCAT RT (x64).Build.0 = Debug|TwinCAT RT (x64)
+		{40D9ED99-C0A3-4788-8EBF-7D990A10FC85}.Debug|TwinCAT RT (x86).ActiveCfg = Debug|TwinCAT RT (x86)
+		{40D9ED99-C0A3-4788-8EBF-7D990A10FC85}.Debug|TwinCAT RT (x86).Build.0 = Debug|TwinCAT RT (x86)
 		{40D9ED99-C0A3-4788-8EBF-7D990A10FC85}.Release|TwinCAT RT (x64).ActiveCfg = Release|TwinCAT RT (x64)
 		{40D9ED99-C0A3-4788-8EBF-7D990A10FC85}.Release|TwinCAT RT (x64).Build.0 = Release|TwinCAT RT (x64)
+		{40D9ED99-C0A3-4788-8EBF-7D990A10FC85}.Release|TwinCAT RT (x86).ActiveCfg = Release|TwinCAT RT (x86)
+		{40D9ED99-C0A3-4788-8EBF-7D990A10FC85}.Release|TwinCAT RT (x86).Build.0 = Release|TwinCAT RT (x86)
 		{44E41B1F-1282-47A8-9246-D06D26944F39}.Debug|TwinCAT RT (x64).ActiveCfg = Debug|TwinCAT RT (x64)
 		{44E41B1F-1282-47A8-9246-D06D26944F39}.Debug|TwinCAT RT (x64).Build.0 = Debug|TwinCAT RT (x64)
+		{44E41B1F-1282-47A8-9246-D06D26944F39}.Debug|TwinCAT RT (x86).ActiveCfg = Debug|TwinCAT RT (x86)
+		{44E41B1F-1282-47A8-9246-D06D26944F39}.Debug|TwinCAT RT (x86).Build.0 = Debug|TwinCAT RT (x86)
 		{44E41B1F-1282-47A8-9246-D06D26944F39}.Release|TwinCAT RT (x64).ActiveCfg = Release|TwinCAT RT (x64)
 		{44E41B1F-1282-47A8-9246-D06D26944F39}.Release|TwinCAT RT (x64).Build.0 = Release|TwinCAT RT (x64)
+		{44E41B1F-1282-47A8-9246-D06D26944F39}.Release|TwinCAT RT (x86).ActiveCfg = Release|TwinCAT RT (x86)
+		{44E41B1F-1282-47A8-9246-D06D26944F39}.Release|TwinCAT RT (x86).Build.0 = Release|TwinCAT RT (x86)
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

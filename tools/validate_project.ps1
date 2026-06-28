@@ -78,6 +78,29 @@ try {
         'PLC source contains no implementation TODO markers.' `
         ("PLC implementation markers remain: " + ($plcTodoHits -join ' | '))
 
+    $locatedIoHits = @(
+        rg -n 'AT\s+%[IQM]' plc twincat\RuntimeSimulation -g '*.st' -g '*.TcGVL' 2>$null
+    )
+    Assert-True ($locatedIoHits.Count -eq 0) `
+        'PLC and generated TwinCAT source use symbolic, unlocated I/O variables.' `
+        ("Fixed process-image addresses are prohibited: " + ($locatedIoHits -join ' | '))
+
+    $fmeaText = Get-Content -LiteralPath 'docs\08_FMEA.md' -Raw
+    $requiredFmeaPatterns = [ordered] @{
+        'power loss' = 'power loss|loss of power'
+        'sensor loss' = 'sensor feedback loss|sensor loss'
+        'limit switch failure' = 'limit switch fails|limit switch failure'
+        'drive fault' = 'drive fault'
+        'network loss' = 'network dropout|loss of network'
+        'encoder feedback loss' = 'encoder feedback loss'
+    }
+    $missingFmeaCases = @($requiredFmeaPatterns.Keys | Where-Object {
+        $fmeaText -notmatch $requiredFmeaPatterns[$_]
+    })
+    Assert-True ($missingFmeaCases.Count -eq 0) `
+        'FMEA explicitly covers all required loss and fault cases.' `
+        ("FMEA is missing explicit cases: " + ($missingFmeaCases -join ', '))
+
     $plcFiles = @(Get-ChildItem -LiteralPath 'plc' -Filter '*.st' -File)
     Assert-True ($plcFiles.Count -eq 16) `
         'Expected 16 reviewed Structured Text source files are present.' `
@@ -165,6 +188,9 @@ try {
         Assert-True ($runtimeSystemText -notmatch 'C:\\Users\\') `
             'Runtime system contains no user-specific absolute paths.' `
             'Runtime system contains a user-specific absolute path.'
+        Assert-True ($runtimeSystemText -match 'SymbolicMapping="false"') `
+            'Runtime system disables unsupported automatic symbolic mapping.' `
+            'Runtime system can trigger the TwinCAT symbolic-mapping compatibility dialog.'
     }
 
     $csvPath = 'simulation\test_runs\MotionSafetyBench_Simulation_Run01.csv'
@@ -211,6 +237,67 @@ try {
         ) `
             'Modular FAT summary identifies ADS Run on port 852 with matching test records.' `
             'Modular FAT target state, port or detailed test count is incorrect.'
+
+        $restartRecords = @($modularSummary.restartValidation)
+        $restartTypes = @($restartRecords | ForEach-Object { $_.type })
+        Assert-True (
+            $modularSummary.restartValidationPassed -and
+            ($restartRecords.Count -eq 2) -and
+            ($restartTypes -contains 'warm') -and
+            ($restartTypes -contains 'cold') -and
+            (@($restartRecords | Where-Object { -not $_.passed }).Count -eq 0)
+        ) `
+            'ADS warm and cold restart validations are both recorded and passing.' `
+            'Warm/cold ADS restart evidence is missing, incomplete or failed.'
+
+        $incompleteTestEvidence = @($modularSummary.tests | Where-Object {
+            [string]::IsNullOrWhiteSpace($_.startedUtc) -or
+            [string]::IsNullOrWhiteSpace($_.completedUtc) -or
+            ($null -eq $_.stateTransitions) -or
+            ($null -eq $_.alarmsObserved) -or
+            ($null -eq $_.recovery) -or
+            ($null -eq $_.motionMetrics) -or
+            (@($_.stateTransitions.mode).Count -eq 0) -or
+            (@($_.stateTransitions.axis1).Count -eq 0) -or
+            (@($_.stateTransitions.command).Count -eq 0) -or
+            (-not $_.recovery.observed)
+        })
+        Assert-True ($incompleteTestEvidence.Count -eq 0) `
+            'Every FAT test records timestamps, transitions, alarms, recovery and motion metrics.' `
+            ("Incomplete per-test evidence: " +
+                (($incompleteTestEvidence | ForEach-Object { $_.name }) -join ', '))
+
+        Assert-True (
+            $modularSummary.tests[12].runtimeRestart.passed -and
+            ($modularSummary.tests[12].runtimeRestart.type -eq 'warm') -and
+            $modularSummary.tests[13].runtimeRestart.passed -and
+            ($modularSummary.tests[13].runtimeRestart.type -eq 'cold')
+        ) `
+            'TR13 and TR14 are backed by genuine ADS runtime restart evidence.' `
+            'TR13/TR14 do not contain passing warm/cold ADS restart evidence.'
+    }
+
+    if (Test-Path -LiteralPath $modularCsvPath) {
+        $modularCsvHeader = Get-Content -LiteralPath $modularCsvPath -TotalCount 1
+        $requiredCsvColumns = @(
+            'TimestampUtc',
+            'eCurrentMode',
+            'eAxis1State',
+            'eLastCommandStatus',
+            'bAxis1InMotion',
+            'bAxis1Error',
+            'nActiveAlarmCount',
+            'nPrimaryAlarmID',
+            'nSafetyStatusWord',
+            'fActualPosition',
+            'fActualVelocity'
+        )
+        $missingCsvColumns = @($requiredCsvColumns | Where-Object {
+            $modularCsvHeader -notmatch ('"' + [regex]::Escape($_) + '"')
+        })
+        Assert-True ($missingCsvColumns.Count -eq 0) `
+            'Modular FAT CSV contains the complete diagnostic capture columns.' `
+            ("Modular FAT CSV is missing columns: " + ($missingCsvColumns -join ', '))
     }
 
     if (Test-Path -LiteralPath $csvPath) {
@@ -249,6 +336,10 @@ try {
         Assert-True ($LASTEXITCODE -eq 0) `
             'HMI JavaScript syntax check passed.' `
             'HMI JavaScript syntax check failed.'
+        & $nodePath --check 'tools\build_simulation_evidence.mjs' 2>&1 | Out-Null
+        Assert-True ($LASTEXITCODE -eq 0) `
+            'Evidence workbook builder JavaScript syntax check passed.' `
+            'Evidence workbook builder JavaScript syntax check failed.'
     }
     else {
         Add-Failure 'Node.js was not available for the HMI syntax check.'
